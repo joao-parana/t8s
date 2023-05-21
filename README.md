@@ -16,6 +16,13 @@
 pip install t8s
 ```
 
+## Testing
+
+```console
+hatch run python3 main.py
+./test-all.sh
+```
+
 ## License
 
 `t8s` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
