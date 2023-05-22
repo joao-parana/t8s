@@ -19,6 +19,7 @@ pip install t8s
 ## Testing
 
 ```console
+hatch build
 hatch run python3 main.py
 ./test-all.sh
 ```
