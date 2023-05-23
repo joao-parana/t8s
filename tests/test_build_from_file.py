@@ -11,4 +11,4 @@ def test_build_from_file():
     assert int(ts.features) == 3
     assert ts.format == 'wide'
     assert ts.df.__len__() == 3
-    
+ 
