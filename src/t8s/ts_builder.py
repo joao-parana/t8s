@@ -87,11 +87,13 @@ interface. The interface makes them interchangeable in the Context.
 """
 
 
-class ConcreteStrategyA(Strategy):
+class ReadParquetFile(Strategy):
     def do_algorithm(self, data: List) -> List:
+        logger.info('Using ReadParquetFile strategy')
         return sorted(data)
 
 
-class ConcreteStrategyB(Strategy):
+class ReadCsvFile(Strategy):
     def do_algorithm(self, data: List) -> List:
+        logger.info('Using ReadCsvFile strategy')
         return reversed(sorted(data))

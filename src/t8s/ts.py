@@ -151,22 +151,22 @@ class TimeSerie(ITimeSeriesProcessor, IProvenancable):
         assert (str(path)).endswith('.parquet'), "path must be a Path object"
         # Lê os metadados do arquivo Parquet
         metadata: pq.FileMetaData = pq.read_metadata(path)
-        logger.debug('\nParquet file metadata:\n', metadata.to_dict(), '\n', metadata.metadata)
+        logger.debug('\nParquet file metadata:\n' + str(metadata.to_dict()) + '\n' + str(metadata.metadata))
         assert isinstance(metadata, pq.FileMetaData), "metadata must be a pq.FileMetaData object"
         dict_meta: dict = metadata.to_dict()
         logger.debug('\n-------------------------------')
-        logger.debug('created_by:', dict_meta['created_by'])
+        logger.debug('created_by: ' + str(dict_meta['created_by']))
         # Imprime o valor do metadado 'format'
         format = metadata.metadata[b'format'].decode()
         features = metadata.metadata[b'features'].decode()
-        logger.info('format:', format, 'type(format)', type(format))
-        logger.info('features:', features, 'type(features):', type(features))
+        logger.info('format: ' + format + ' type(format) ' + str(type(format)))
+        logger.info('features: ' + str(features) + ' type(features): ' + str(type(features)))
         assert isinstance(format, str), "format metadada must be a string"
         assert isinstance(features, str), "features metadada must be a string"
         # print('format', dict_meta['format'])
         # print('features', dict_meta['features'])
         # Imprime o esquema do arquivo Parquet
-        logger.debug('\ntype(metadata.schema):', type(metadata.schema), '\t', metadata.schema)
+        logger.debug('\ntype(metadata.schema): ' + str(type(metadata.schema)) + '\t' + str(metadata.schema))
         # Imprime as colunas do arquivo Parquet
         # print('metadata.column_names', metadata.column_names)
         # Imprime as estatísticas do arquivo Parquet
@@ -175,11 +175,11 @@ class TimeSerie(ITimeSeriesProcessor, IProvenancable):
         features_qty = int(features)
         # Leia o arquivo Parquet
         parquet_file: pa.parquet.core.ParquetFile = pq.ParquetFile(path)
-        logger.debug('\ntype(parquet_file):', type(parquet_file), '\n', parquet_file)
+        logger.debug('\ntype(parquet_file): ' + str(type(parquet_file)) + '\n' + str(parquet_file))
         logger.debug('\n-------------------------------')
         df = pd.read_parquet(path)
-        logger.debug('\ndf:\n', df)
+        logger.debug('\ndf:\n' + str(df))
         # Cria o objeto 
         ts = TimeSerie(data=df, format=format, features_qty=features_qty)
-        logger.debug('\nts:\n', ts)
+        logger.debug('\nts:\n' + str(ts))
         return ts

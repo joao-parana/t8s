@@ -3,5 +3,5 @@
 # SPDX-License-Identifier: MIT
 from .ts import ITimeSeriesProcessor, TimeSerie, IProvenancable
 from .log_config import LogConfig
-from .ts_builder import TSBuilder, ConcreteStrategyA, ConcreteStrategyB
+from .ts_builder import TSBuilder, ReadParquetFile, ReadCsvFile
 from .__about__ import __version__

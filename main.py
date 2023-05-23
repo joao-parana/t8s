@@ -2,7 +2,7 @@ from t8s.log_config import LogConfig
 from pathlib import Path
 from datetime import datetime
 import t8s
-from t8s import TimeSerie, TSBuilder, ConcreteStrategyA, ConcreteStrategyB
+from t8s import TimeSerie, TSBuilder, ReadParquetFile, ReadCsvFile
 
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
 
@@ -46,12 +46,12 @@ if __name__ == "__main__":
 
     assert isinstance(path, Path), "path must be a Path object"
     if  (str(path)).endswith('.parquet'):
-        context = TSBuilder(ConcreteStrategyA())
+        context = TSBuilder(ReadParquetFile())
         print("Client: Strategy is set to read Parquet file.")
         context.build_from_file(Path(path_str))
         print()
     else:
         assert str(path).endswith('.csv'), "If path is not a Parquet file the path must be a CSV file"
         print("Client: Strategy is set to read CSV file.")
-        context = TSBuilder(ConcreteStrategyB())
+        context = TSBuilder(ReadCsvFile())
         context.build_from_file(Path(path_str))
