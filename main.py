@@ -1,10 +1,19 @@
+from t8s.log_config import LogConfig
 from pathlib import Path
 from datetime import datetime
 import t8s
-from t8s import TimeSerie
+from t8s import TimeSerie, TSBuilder, ConcreteStrategyA, ConcreteStrategyB
+
+from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
 
 if __name__ == "__main__":
-    print('t8s package version:', t8s.__version__)
+    # print('globals:', globals())
+    # The client code.
+    LogConfig().initialize_logger(INFO)
+    logger = LogConfig().getLogger()
+
+    # initialize_logger(INFO)
+    logger.info('t8s package version:' + t8s.__version__)
     path_str: str = 'ts_01.parquet'
     path = Path(path_str)
     # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e velocidade
@@ -17,8 +26,8 @@ if __name__ == "__main__":
     ts = TimeSerie(data, format='wide', features_qty=len(data))
     df = ts.df
     cols_str = [name for name in sorted(df.columns)]
-    print('cols_str :', ', '.join(cols_str))
-    print(f'Dataframe com {len(df.columns)} colunas: {df.columns}')
+    cols_str = ', '.join(cols_str)
+    logger.info(f'Dataframe com {len(df.columns)} colunas: {cols_str}')
     # Imprime a série temporal
     print(ts)
     # Imprime a série temporal em parquet
@@ -30,3 +39,19 @@ if __name__ == "__main__":
     assert int(ts.features) == 3
     assert ts.format == 'wide'
     assert ts.df.__len__() == 3
+    # --------------------------------------------------------------------------------
+    # The client code picks a concrete strategy and passes it to the context.
+    # The client should be aware of the differences between strategies in order
+    # to make the right choice.
+
+    assert isinstance(path, Path), "path must be a Path object"
+    if  (str(path)).endswith('.parquet'):
+        context = TSBuilder(ConcreteStrategyA())
+        print("Client: Strategy is set to read Parquet file.")
+        context.build_from_file(Path(path_str))
+        print()
+    else:
+        assert str(path).endswith('.csv'), "If path is not a Parquet file the path must be a CSV file"
+        print("Client: Strategy is set to read CSV file.")
+        context = TSBuilder(ConcreteStrategyB())
+        context.build_from_file(Path(path_str))
