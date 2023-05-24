@@ -31,9 +31,9 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/unknown/t8s#readme"
-Issues = "https://github.com/unknown/t8s/issues"
-Source = "https://github.com/unknown/t8s"
+Documentation = "https://github.com/joao-parana/t8s#readme"
+Issues = "https://github.com/joao-parana/t8s/issues"
+Source = "https://github.com/joao-parana/t8s"
 
 [tool.hatch.version]
 path = "src/t8s/__about__.py"
