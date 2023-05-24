@@ -18,9 +18,13 @@ if __name__ == "__main__":
     path = Path(path_str)
     # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e velocidade
     data = {
-        'timestamp': [datetime(2022, 1, 1, 0, 0, 0), datetime(2022, 1, 1, 1, 0, 0), datetime(2022, 1, 1, 2, 0, 0)],
-        'temperatura': [25.0, 26.0, 27.0],
-        'velocidade': [2000, 1100, 1200]
+        'timestamp': [
+            datetime(2022, 1, 1, 0, 0, 0), 
+            datetime(2022, 1, 1, 1, 0, 0),
+            datetime(2022, 1, 1, 2, 0, 0), 
+            datetime(2022, 1, 1, 3, 0, 0)],
+        'temperatura': [25.0, 26.0, 27.0, 23.2],
+        'velocidade': [2000.1, 1100.3, 1200.5, 4000.4]
     }
 
     ts = TimeSerie(data, format='wide', features_qty=len(data))
@@ -35,23 +39,25 @@ if __name__ == "__main__":
     ts.to_parquet(Path(path_str))
     # Lê a série temporal gravada no arquivo parquet
     print('\nLendo path: ', path)
-    ts = TimeSerie.build_from_file(path) 
-    assert int(ts.features) == 3
-    assert ts.format == 'wide'
-    assert ts.df.__len__() == 3
+    # ts = TimeSerie.build_from_file(path) 
+    
     # --------------------------------------------------------------------------------
     # The client code picks a concrete strategy and passes it to the context.
     # The client should be aware of the differences between strategies in order
     # to make the right choice.
 
+    ts = TimeSerie(format = 'wide', features_qty = 0)
     assert isinstance(path, Path), "path must be a Path object"
     if  (str(path)).endswith('.parquet'):
         context = TSBuilder(ReadParquetFile())
         print("Client: Strategy is set to read Parquet file.")
-        context.build_from_file(Path(path_str))
-        print()
+        ts = context.build_from_file(Path(path_str))
     else:
         assert str(path).endswith('.csv'), "If path is not a Parquet file the path must be a CSV file"
         print("Client: Strategy is set to read CSV file.")
         context = TSBuilder(ReadCsvFile())
-        context.build_from_file(Path(path_str))
+        ts = context.build_from_file(Path(path_str))
+
+    assert int(ts.features) == 3
+    assert ts.format == 'wide'
+    assert ts.df.__len__() == 4
