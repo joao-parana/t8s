@@ -27,7 +27,7 @@ Check Linter rules using **PyRight** (https://microsoft.github.io/pyright)
 pyright --level warning .
 ```
 
-## Testing
+## Testing and publishing
 
 ```batch
 # Para inspecionar a configuração do ambiente de testes:
@@ -37,6 +37,7 @@ hatch build
 # Edit your main.py code
 hatch run python3 main.py
 ./test-all.sh
+hatch publish
 ```
 
 ## License
