@@ -11,3 +11,6 @@ do
     echo "---------------------------------------------------"
     echo " "
 done
+
+rm -rf .ruff_cache/* .pytest_cache/*
+
