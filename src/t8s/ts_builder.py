@@ -1,22 +1,41 @@
-from __future__ import annotations
+# from __future__ import annotations usado apenas nas versões anteriores a 3.7
 from abc import ABC, abstractmethod
-from typing import List, Any
+from typing import Any, Optional
 from pathlib import Path
 from datetime import datetime
 from t8s.log_config import LogConfig
-from t8s import TimeSerie
+from t8s.ts import TimeSerie # , ITimeSerie, ITimeSeriesProcessor, IProvenancable
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
 logger = LogConfig().getLogger()
 
+class ReadStrategy(ABC):
+    """
+    The Strategy interface declares operations common to all supported versions
+    of some algorithm.
+
+    The Context uses this interface to call the algorithm defined by Concrete
+    Strategies.
+    """
+
+    @abstractmethod
+    def do_read(self, data: Any) -> TimeSerie:
+        pass
+
+
+"""
+Concrete Strategies implement the algorithm while following the base Strategy
+interface. The interface makes them interchangeable in the Context.
+"""
+
 class TSBuilder():
     """
     The Context defines the interface of interest to clients.
     """
 
-    def __init__(self, strategy: Strategy) -> None:
+    def __init__(self, strategy: ReadStrategy) -> None:
         """
         Usually, the Context accepts a strategy through the constructor, but
         also provides a setter to change it at runtime.
@@ -25,7 +44,7 @@ class TSBuilder():
         self._strategy = strategy
 
     @property
-    def strategy(self) -> Strategy:
+    def strategy(self) -> ReadStrategy:
         """
         The Context maintains a reference to one of the Strategy objects. The
         Context does not know the concrete class of a strategy. It should work
@@ -35,7 +54,7 @@ class TSBuilder():
         return self._strategy
 
     @strategy.setter
-    def strategy(self, strategy: Strategy) -> None:
+    def strategy(self, strategy: ReadStrategy) -> None:
         """
         Usually, the Context allows replacing a Strategy object at runtime.
         """
@@ -50,14 +69,14 @@ class TSBuilder():
 
         # ...
 
-        logger.info("Context: build_from_file")
-        result = self._strategy.do_algorithm(path)
-        logger.info('result type is: ' + str(type(result)))
+        logger.info(f"Context: build_from_file {path}")
+        result = self._strategy.do_read(path)
+        logger.info('result type from build_from_file() is: ' + str(type(result)))
 
         # ...
         return result
 
-    def build_from_socket(self, uri) -> TimeSerie:
+    def build_from_socket(self, uri) -> Optional['TimeSerie']:
         """
         The Context delegates some work to the Strategy object instead of
         implementing multiple versions of the algorithm on its own.
@@ -66,35 +85,19 @@ class TSBuilder():
         # ...
 
         print("Context: build_from_socket")
-        result = self._strategy.do_algorithm(None)
-        logger.info('result type is: ' + str(type(result)))
+        result = self._strategy.do_read(None)
+        logger.info('result type from build_from_socket() is: ' + str(type(result)))
 
         # ...
         return result
 
-class Strategy(ABC):
-    """
-    The Strategy interface declares operations common to all supported versions
-    of some algorithm.
+    @staticmethod
+    def empty() -> TimeSerie:
+        return TimeSerie.empty()
 
-    The Context uses this interface to call the algorithm defined by Concrete
-    Strategies.
-    """
-
-    @abstractmethod
-    def do_algorithm(self, data: Any) -> TimeSerie:
-        pass
-
-
-"""
-Concrete Strategies implement the algorithm while following the base Strategy
-interface. The interface makes them interchangeable in the Context.
-"""
-
-
-class ReadParquetFile(Strategy):
-    def do_algorithm(self, data: Path) -> TimeSerie:
-        logger.info('Using ReadParquetFile strategy')
+class ReadParquetFile(ReadStrategy):
+    def do_read(self, data: Path) -> Optional['TimeSerie']:
+        logger.info('Using ReadParquetFile strategy to read data from: ' + str(data))
         assert isinstance(data, Path), "path must be a Path object"
         assert (str(data)).endswith('.parquet'), "path must be a Path object"
         # Lê os metadados do arquivo Parquet
@@ -111,6 +114,8 @@ class ReadParquetFile(Strategy):
         logger.info('features: ' + str(features) + ' type(features): ' + str(type(features)))
         assert isinstance(format, str), "format metadada must be a string"
         assert isinstance(features, str), "features metadada must be a string"
+        features_qty = int(features)
+        assert features_qty > 1, "features_qty must be greater than one"
         # print('format', dict_meta['format'])
         # print('features', dict_meta['features'])
         # Imprime o esquema do arquivo Parquet
@@ -119,8 +124,6 @@ class ReadParquetFile(Strategy):
         # print('metadata.column_names', metadata.column_names)
         # Imprime as estatísticas do arquivo Parquet
         logger.debug(metadata.row_group(0).column(0).statistics)
-        # Leia os metadados do arquivo Parquet
-        features_qty = int(features)
         # Leia o arquivo Parquet
         parquet_file: pa.parquet.core.ParquetFile = pq.ParquetFile(data)
         logger.debug('\ntype(parquet_file): ' + str(type(parquet_file)) + '\n' + str(parquet_file))
@@ -128,12 +131,11 @@ class ReadParquetFile(Strategy):
         df = pd.read_parquet(data)
         logger.debug('\ndf:\n' + str(df))
         # Cria o objeto 
-        ts = TimeSerie(data=df, format=format, features_qty=features_qty)
-        logger.info('\nts:\n' + str(ts))
+        ts = TimeSerie(df, format=format, features_qty=features_qty)
+        logger.debug('\nts:\n' + str(ts))
         return ts
 
-
-class ReadCsvFile(Strategy):
-    def do_algorithm(self, data: List) -> TimeSerie:
+class ReadCsvFile(ReadStrategy):
+    def do_read(self, data: list) -> Optional['TimeSerie']:
         logger.info('Using ReadCsvFile strategy')
-        return TimeSerie(format = '', features_qty = 0)
+        return TSBuilder.empty()

@@ -19,6 +19,9 @@ pip install t8s
 ## Testing
 
 ```console
+# Para inspecionar a configuração do ambiente de testes:
+hatch config show
+hatch clean
 hatch build
 hatch run python3 main.py
 ./test-all.sh
