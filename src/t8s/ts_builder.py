@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # from __future__ import annotations usado apenas nas versões anteriores a 3.7
 from abc import ABC, abstractmethod
 from typing import Any, Optional
@@ -62,6 +64,8 @@ class TSBuilder():
         self._strategy = strategy
 
     def build_from_file(self, path: Path) -> TimeSerie:
+        # TODO: garantir que a primeira coluna seja um Timestamp quando o formato for long ou wide
+
         """
         The Context delegates some work to the Strategy object instead of
         implementing multiple versions of the algorithm on its own.
@@ -77,6 +81,8 @@ class TSBuilder():
         return result
 
     def build_from_socket(self, uri) -> Optional['TimeSerie']:
+        # TODO: garantir que a primeira coluna seja um Timestamp quando o formato for long ou wide
+
         """
         The Context delegates some work to the Strategy object instead of
         implementing multiple versions of the algorithm on its own.
@@ -125,10 +131,11 @@ class ReadParquetFile(ReadStrategy):
         # Imprime as estatísticas do arquivo Parquet
         logger.debug(metadata.row_group(0).column(0).statistics)
         # Leia o arquivo Parquet
-        parquet_file: pa.parquet.core.ParquetFile = pq.ParquetFile(data)
+        parquet_file = pq.ParquetFile(data)
         logger.debug('\ntype(parquet_file): ' + str(type(parquet_file)) + '\n' + str(parquet_file))
         logger.debug('\n-------------------------------')
         df = pd.read_parquet(data)
+        # TODO: garantir que a primeira coluna seja um Timestamp quando o formato for long ou wide
         logger.debug('\ndf:\n' + str(df))
         # Cria o objeto 
         ts = TimeSerie(df, format=format, features_qty=features_qty)

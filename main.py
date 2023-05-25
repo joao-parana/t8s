@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from t8s.log_config import LogConfig
 from pathlib import Path
 from datetime import datetime
@@ -13,7 +15,7 @@ from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
 if __name__ == "__main__":
     # print('globals:', globals())
     # The client code.
-    LogConfig().initialize_logger(INFO)
+    LogConfig().initialize_logger(DEBUG)
     logger = LogConfig().getLogger()
     ts = TSBuilder.empty()
     # initialize_logger(INFO)
@@ -80,12 +82,14 @@ if __name__ == "__main__":
     assert type(ts.df['temperatura'][0]) == np.float32
     assert type(ts.df['velocidade'][0]) == np.int32
 
+    print('---------------------------------------------------')
     univariate_list = ts.split()
     for idx, ts_uni in enumerate(univariate_list):
-        print(f'TimeSerie univariada {idx}:')
+        print(f'TimeSerie univariada {idx+1}:')
         print(ts_uni)
         print('---------------------------------------------------')
-        print(f'univariate {idx-1}', '\n ', ts_uni)
 
-    print('---------------------------------------------------')
-    
+    print('\nAgora posso fazer o join das séries temporais univariadas')
+    ts = TimeSerie.join(univariate_list)
+    print("\n\nTimeSerie multivariada, ts:\n")
+    print(ts)

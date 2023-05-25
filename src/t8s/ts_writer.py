@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+
 # from __future__ import annotations usado apenas nas versões anteriores a 3.7
 from abc import ABC, abstractmethod
+from logging import captureWarnings
 from typing import Any, Optional
 from pathlib import Path
 from datetime import datetime
@@ -97,3 +100,33 @@ class WriteCsvFile(Strategy):
     def do_write(self, path: Path, ts: TimeSerie) -> None:
         logger.info('Using WriteCsvFile strategy')
         return None
+
+if __name__ == "__main__":
+    from logging import INFO, DEBUG
+    import numpy as np
+    import pandas as pd
+    import subprocess
+    LogConfig().initialize_logger(DEBUG)
+    path_str: str = 'ts_01.parquet'
+    path = Path(path_str)
+    # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e velocidade
+    data = {
+        'timestamp': [
+            datetime(2022, 1, 1, 0, 0, 0), datetime(2022, 1, 1, 1, 0, 0),
+            datetime(2022, 1, 1, 2, 0, 0), datetime(2022, 1, 1, 3, 0, 0)],
+        'temperatura': np.array([25.0, 26.0, 27.0, 23.2], dtype=np.float32),
+        'velocidade': np.array([2000, 1100, 1200, 4000], dtype=np.int32)
+    }
+    # Cria uma série temporal multivariada 
+    ts = TimeSerie(data, format='wide', features_qty = 3)
+    # Grava a série temporal em parquet
+    print(f'Grava a série temporal (formato {ts.format}) em um arquivo parquet {path}')
+    (TSWriter(WriteParquetFile())).write(Path(path_str), ts)
+    print(f'Arquivo {str(path)} gerado à partir da TimeSerie fornecida')
+    #  Supondo o arquivo /usr/local/bin/lsla existindo no sistema com o conteudo abaixo:
+    #  #!/bin/bash
+    # 
+    #  ls -lA *.parquet
+    #
+    result = subprocess.run(['lsla'], capture_output=True, text=True)
+    print(result.stdout)
