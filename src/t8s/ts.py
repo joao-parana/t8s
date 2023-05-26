@@ -46,7 +46,7 @@ class ITimeSeriesProcessor(ABC):
         return False
 
     @abstractmethod
-    def split(self) -> list['TimeSerie']: # Alternativa: list[Optional['TimeSerie']]
+    def split(self) -> list[TS]: # Alternativa: list['TimeSerie'] ou list[Optional['TimeSerie']]
         # Cria várias séries temporais univariadas à partir de uma série temporal multivariada
         pass
 
@@ -135,7 +135,7 @@ class TimeSerie(ITimeSerie):
             raise NotImplementedError('Not implemented for long format')
         return self.df.columns.size > 2
 
-    def split(self) -> list['TimeSerie']:
+    def split(self) -> list[TS]: # Alternativa: list['TimeSerie']
         # TODO: garantir que a primeira coluna seja o indice no Dataframe quando o formato for long ou wide
         # TODO: garantir que a primeira coluna seja do tipo Timesamp (datetime) quando o formato for long ou wide
         # Cria várias séries temporais univariadas à partir de uma série temporal multivariada
