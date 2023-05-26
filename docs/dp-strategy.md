@@ -1,4 +1,4 @@
-# Design Pattern used 
+# Design Pattern used: Strategy
 
 As transformações executadas na `TimeSerie` são implementadas usando o padrão de projeto `Strategy`.
 
