@@ -1,4 +1,4 @@
-# Design Pattern used 
+# Design Pattern used: Composite
 
 As composições de objetos `TimeSerie` gerando Datasets mais complexos são implementadas usando
 o padrão de projeto `Composite`.
