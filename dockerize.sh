@@ -18,5 +18,5 @@ hatch publish
 # Get the version of the t8s package
 T8S_VERSION=`hatch run python -c "import t8s ; print(t8s.__version__)"`
 # Build the docker image with proper TAG
-docker build -t parana/t8s:$T8S_VERSION .
+docker build -t $ARTIFACT_REGISTRY/t8s:$T8S_VERSION .
 
