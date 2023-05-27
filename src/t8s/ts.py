@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime
 import yaml
 from abc import ABC, abstractmethod
-from typing import Any, Optional, TypeVar
+from typing import Any, Optional, Type, TypeVar
 
 import pandas as pd
 import pyarrow as pa
@@ -48,7 +48,9 @@ class ITimeSeriesProcessor(ABC):
         return False
 
     @abstractmethod
-    def split(self) -> list[TS]: # Alternativa: list['TimeSerie'] ou list[Optional['TimeSerie']]
+    def split(self) -> list[Type['TimeSerie']]: 
+        # Alternativas para anotar o tipo de retorno: 
+        # list[TS], list['TimeSerie'] ou list[Optional['TimeSerie']]
         # Cria várias séries temporais univariadas à partir de uma série temporal multivariada
         pass
 

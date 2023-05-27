@@ -29,6 +29,11 @@ dependencies = [
   "pandas",
 ]
 
+[project.optional-dependencies]
+dev = [
+  "pytest",
+]
+
 [project.urls]
 Documentation = "https://github.com/joao-parana/t8s#README.md"
 Issues = "https://github.com/joao-parana/t8s/issues"

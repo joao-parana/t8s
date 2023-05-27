@@ -6,3 +6,11 @@ from .__about__ import __version__
 #
 # class ITimeSerie(ABC):
 #    pass
+
+import re
+from enum import Enum
+
+def get_numeric_regex():
+    # Definindo a expressão regular para identificar números de ponto flutuante
+    pattern = r'[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?'
+    return re.compile(pattern)

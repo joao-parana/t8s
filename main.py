@@ -44,13 +44,22 @@ if __name__ == "__main__":
     logger.info(f'Dataframe com {len(ts.df.columns)} colunas: {cols_str}')
     # Faz o display da série temporal no terminal
     print(ts)
+
+    # --------------------------------------------------------------------------------
+
     # Grava a série temporal em parquet
     print(f'Grava a série temporal (formato {ts.format}) em um arquivo parquet {path}')
     context = TSWriter(WriteParquetFile())
     print("Client: Strategy was seted to write Parquet file.")
     context.write(Path(path_str), ts)
     print(f'\nArquivo {str(path)} gerado à partir da TimeSerie fornecida')
+
     # --------------------------------------------------------------------------------
+
+    # Lê a série temporal gravada no arquivo parquet e gera uma nova série temporal
+    # com os respectivos Metadados e Schema. Ao final verifica se os tipos de dados
+    # foram lidos corretamente com o módulo assert.
+
     # Limpando objeto ts para garantir que será lido corretamente.
     ts: TimeSerie = TSBuilder.empty()
     # Lê a série temporal gravada no arquivo parquet
@@ -93,3 +102,39 @@ if __name__ == "__main__":
     ts = TimeSerie.join(univariate_list)
     print("\n\nTimeSerie multivariada, ts:\n")
     print(ts)
+
+    # --------------------------------------------------------------------------------
+
+    # Verifica se um conjunto de arquivos CSV tem o mesmo Schema
+    from t8s.io import IO
+    directory: Path = Path('/NullPathObject')
+    assert directory.exists() == False, "directory must be a valid Path object"
+    path = Path('../fpp3-python/data')
+    # informando o diretório onde estão os arquivos CSV
+    IO.check_schema_in_csv_files(directory=path)
+    # ou a propria lista de arquivos CSV
+    path = Path('../fpp3-python/data')
+    my_csv_files:list[Path] = list(path.glob('*.csv'))
+    IO.check_schema_in_csv_files(csv_files=my_csv_files)
+
+    # --------------------------------------------------------------------------------
+    # Faz a leitura de arquivo CSV e gera uma série temporal multivariada com colunas 
+    # numéricas corretamente tipadas (datetime, float32 e int32). Os tipos de dados
+    # são inferidos pelo Pandas e corrigidos no caso de discrepâncias, onde o Pandas
+    # não consegue inferir o tipo de dado corretamente e deixa como `object`.
+    # No futuro tipos str e bool serão suportados também, para os casos envolvendo
+    # agregação, classificação e regressão.
+
+    Path('../fpp3-python/data/')
+    IO.read_csv_file()
+
+    # --------------------------------------------------------------------------------
+
+
+    # --------------------------------------------------------------------------------
+
+
+    # --------------------------------------------------------------------------------
+
+
+    # --------------------------------------------------------------------------------
