@@ -14,6 +14,7 @@ import pyarrow.parquet as pq
 
 logger = LogConfig().getLogger()
 
+
 class Strategy(ABC):
     """
     The Strategy interface declares operations common to all supported versions
@@ -33,7 +34,8 @@ Concrete Strategies implement the algorithm while following the base Strategy
 interface. The interface makes them interchangeable in the Context.
 """
 
-class TSWriter():
+
+class TSWriter:
     """
     The Context defines the interface of interest to clients.
     """
@@ -79,6 +81,7 @@ class TSWriter():
         # ...
         return result
 
+
 class WriteParquetFile(Strategy):
     # O método do_write é VOID, pois o resultado é gravado em disco. Caso ocorra
     # algum problema uma `Exception` é lançada.
@@ -88,11 +91,12 @@ class WriteParquetFile(Strategy):
         # to_parquet(path, df, self.format, self.features)
         table = pa.Table.from_pandas(ts.df)
         # table = table.replace_schema_metadata({'format': self.format, 'features': self.features})
-        table = table.replace_schema_metadata({
-            b'format': str(ts.format).encode(),
-            b'features': str(ts.features).encode()})
+        table = table.replace_schema_metadata(
+            {b'format': str(ts.format).encode(), b'features': str(ts.features).encode()}
+        )
         result = pq.write_table(table, path)
-        return result      
+        return result
+
 
 class WriteCsvFile(Strategy):
     # O método do_write é VOID, pois o resultado é gravado em disco. Caso ocorra
@@ -101,31 +105,36 @@ class WriteCsvFile(Strategy):
         logger.info('Using WriteCsvFile strategy')
         return None
 
+
 if __name__ == "__main__":
     from logging import INFO, DEBUG
     import numpy as np
     import pandas as pd
     import subprocess
+
     LogConfig().initialize_logger(DEBUG)
     path_str: str = 'ts_01.parquet'
     path = Path(path_str)
     # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e velocidade
     data = {
         'timestamp': [
-            datetime(2022, 1, 1, 0, 0, 0), datetime(2022, 1, 1, 1, 0, 0),
-            datetime(2022, 1, 1, 2, 0, 0), datetime(2022, 1, 1, 3, 0, 0)],
+            datetime(2022, 1, 1, 0, 0, 0),
+            datetime(2022, 1, 1, 1, 0, 0),
+            datetime(2022, 1, 1, 2, 0, 0),
+            datetime(2022, 1, 1, 3, 0, 0),
+        ],
         'temperatura': np.array([25.0, 26.0, 27.0, 23.2], dtype=np.float32),
-        'velocidade': np.array([2000, 1100, 1200, 4000], dtype=np.int32)
+        'velocidade': np.array([2000, 1100, 1200, 4000], dtype=np.int32),
     }
-    # Cria uma série temporal multivariada 
-    ts = TimeSerie(data, format='wide', features_qty = 3)
+    # Cria uma série temporal multivariada
+    ts = TimeSerie(data, format='wide', features_qty=3)
     # Grava a série temporal em parquet
     print(f'Grava a série temporal (formato {ts.format}) em um arquivo parquet {path}')
     (TSWriter(WriteParquetFile())).write(Path(path_str), ts)
     print(f'Arquivo {str(path)} gerado à partir da TimeSerie fornecida')
     #  Supondo o arquivo /usr/local/bin/lsla existindo no sistema com o conteudo abaixo:
     #  #!/bin/bash
-    # 
+    #
     #  ls -lA *.parquet
     #
     result = subprocess.run(['lsla'], capture_output=True, text=True)

@@ -4,6 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import List
 
+
 class Component(ABC):
     """
     The base Component class declares common operations for both simple and
@@ -59,6 +60,7 @@ class Component(ABC):
 
         pass
 
+
 class Leaf(Component):
     """
     The Leaf class represents the end objects of a composition. A leaf can't
@@ -71,9 +73,10 @@ class Leaf(Component):
     def operation(self) -> str:
         return "Leaf"
 
+
 class NullComponent(Component):
     """
-    The NullComponent class is used to represent a null object in the composite. 
+    The NullComponent class is used to represent a null object in the composite.
     it is used in delete operations
     """
 
@@ -82,6 +85,7 @@ class NullComponent(Component):
 
     def operation(self) -> str:
         return ''
+
 
 class Composite(Component):
     """

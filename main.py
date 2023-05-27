@@ -25,20 +25,21 @@ if __name__ == "__main__":
     # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e velocidade
     data = {
         'timestamp': [
-            datetime(2022, 1, 1, 0, 0, 0), 
+            datetime(2022, 1, 1, 0, 0, 0),
             datetime(2022, 1, 1, 1, 0, 0),
-            datetime(2022, 1, 1, 2, 0, 0), 
-            datetime(2022, 1, 1, 3, 0, 0)],
+            datetime(2022, 1, 1, 2, 0, 0),
+            datetime(2022, 1, 1, 3, 0, 0),
+        ],
         'temperatura': np.array([25.0, 26.0, 27.0, 23.2], dtype=np.float32),
-        'velocidade': [2000, 1100, 1200, 4000]
+        'velocidade': [2000, 1100, 1200, 4000],
     }
-    # Convertendo os tipos de dado para temperatura e velocidade para 
+    # Convertendo os tipos de dado para temperatura e velocidade para
     # np.float32 e np.int32 respectivamente, pois o padrão é np.float64 e np.int64
     data['temperatura'] = np.array(data['temperatura'], dtype=np.float32)
     data['velocidade'] = np.array(data['velocidade'], dtype=np.int32)
     # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e
     # velocidade para o proposito de teste
-    ts = TimeSerie(data, format='wide', features_qty = 3)
+    ts = TimeSerie(data, format='wide', features_qty=3)
     cols_str = [name for name in sorted(ts.df.columns)]
     cols_str = ', '.join(cols_str)
     logger.info(f'Dataframe com {len(ts.df.columns)} colunas: {cols_str}')
@@ -64,12 +65,12 @@ if __name__ == "__main__":
     ts: TimeSerie = TSBuilder.empty()
     # Lê a série temporal gravada no arquivo parquet
     print(f'\nLendo path {str(path)} e gerando TimeSerie')
-    
+
     # The client code picks a concrete strategy and passes it to the context.
     # The client should be aware of the differences between strategies in order
     # to make the right choice.
     assert isinstance(path, Path), "path must be a Path object"
-    if  (str(path)).endswith('.parquet'):
+    if (str(path)).endswith('.parquet'):
         context = TSBuilder(ReadParquetFile())
         print("Client: ReadStrategy is set to read Parquet file.")
         ts = context.build_from_file(Path(path_str))
@@ -107,6 +108,7 @@ if __name__ == "__main__":
 
     # Verifica se um conjunto de arquivos CSV tem o mesmo Schema
     from t8s.io import IO
+
     directory: Path = Path('/NullPathObject')
     assert directory.exists() == False, "directory must be a valid Path object"
     path = Path('../fpp3-python/data')
@@ -114,11 +116,11 @@ if __name__ == "__main__":
     IO.check_schema_in_csv_files(directory=path)
     # ou a propria lista de arquivos CSV
     path = Path('../fpp3-python/data')
-    my_csv_files:list[Path] = list(path.glob('*.csv'))
+    my_csv_files: list[Path] = list(path.glob('*.csv'))
     IO.check_schema_in_csv_files(csv_files=my_csv_files)
 
     # --------------------------------------------------------------------------------
-    # Faz a leitura de arquivo CSV e gera uma série temporal multivariada com colunas 
+    # Faz a leitura de arquivo CSV e gera uma série temporal multivariada com colunas
     # numéricas corretamente tipadas (datetime, float32 e int32). Os tipos de dados
     # são inferidos pelo Pandas e corrigidos no caso de discrepâncias, onde o Pandas
     # não consegue inferir o tipo de dado corretamente e deixa como `object`.
@@ -126,15 +128,12 @@ if __name__ == "__main__":
     # agregação, classificação e regressão.
 
     Path('../fpp3-python/data/')
-    IO.read_csv_file()
+    # IO.read_csv_file()
 
     # --------------------------------------------------------------------------------
 
-
     # --------------------------------------------------------------------------------
 
-
     # --------------------------------------------------------------------------------
-
 
     # --------------------------------------------------------------------------------

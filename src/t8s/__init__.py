@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 from .__about__ import __version__
+
 # from abc import ABC, abstractmethod
 #
 # class ITimeSerie(ABC):
@@ -9,6 +10,7 @@ from .__about__ import __version__
 
 import re
 from enum import Enum
+
 
 def get_numeric_regex():
     # Definindo a expressão regular para identificar números de ponto flutuante

@@ -4,6 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
+
 class Handler(ABC):
     """
     The Handler interface declares a method for building the chain of handlers.
@@ -18,13 +19,14 @@ class Handler(ABC):
     def handle(self, request) -> Optional[str]:
         pass
 
+
 class AbstractHandler(Handler):
     """
     The default chaining behavior can be implemented inside a base handler
     class.
     """
 
-    _next_handler: Handler = None
+    _next_handler: Handler
 
     def set_next(self, handler: Handler) -> Handler:
         self._next_handler = handler
@@ -40,10 +42,17 @@ class AbstractHandler(Handler):
 
         return None
 
+
 """
 All Concrete Handlers either handle a request or pass it to the next handler in
 the chain.
 """
+
+class NullHandler(AbstractHandler):
+    def handle(self, request: Any) -> str:
+        return f"NullHandler: I'll not eat any request"
+
+null_handler: NullHandler = NullHandler()
 
 class MonkeyHandler(AbstractHandler):
     def handle(self, request: Any) -> str:
@@ -82,6 +91,7 @@ def client_code(handler: Handler) -> None:
             print(f"  {result}", end="")
         else:
             print(f"  {food} was left untouched.", end="")
+
 
 if __name__ == "__main__":
     monkey = MonkeyHandler()

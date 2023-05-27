@@ -6,4 +6,3 @@ import yaml
 from pathlib import Path
 from datetime import datetime
 from t8s.ts import TimeSerie
-

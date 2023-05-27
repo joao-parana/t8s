@@ -20,6 +20,7 @@ TS = TypeVar('TS', bound='TimeSerie')
 
 # ts = pd.read_parquet('lixo.parquet', engine='pyarrow')
 
+
 # Classe abstrata que define a interface para os processamentos de séries temporais
 class ITimeSeriesProcessor(ABC):
     def __init__(self):
@@ -28,6 +29,7 @@ class ITimeSeriesProcessor(ABC):
         self.df: pd.DataFrame
 
     """Converte a série temporal para o formato Long"""
+
     @abstractmethod
     def to_long(self) -> bool:
         return False
@@ -48,8 +50,8 @@ class ITimeSeriesProcessor(ABC):
         return False
 
     @abstractmethod
-    def split(self) -> list[Type['TimeSerie']]: 
-        # Alternativas para anotar o tipo de retorno: 
+    def split(self) -> list[Type['TimeSerie']]:
+        # Alternativas para anotar o tipo de retorno:
         # list[TS], list['TimeSerie'] ou list[Optional['TimeSerie']]
         # Cria várias séries temporais univariadas à partir de uma série temporal multivariada
         pass
@@ -59,7 +61,10 @@ class ITimeSeriesProcessor(ABC):
     # def join(list_of_ts: list['TimeSerie']) -> TS:
     #     pass
 
+
 """Rastreia a proveniência dos ativos de informação, Série Temporal neste caso"""
+
+
 class IProvenancable(ABC):
     def __init__(self):
         self.format: str
@@ -69,39 +74,43 @@ class IProvenancable(ABC):
     """Este método adiciona informações de proveniência ao objeto TimeSerie para 
     uma transformação específica. Ele recebe como parâmetros o nome da transformação 
     e um dicionário com os parâmetros usados na transformação."""
+
     @abstractmethod
-    def add_provenance(self, transformation: str, parameters: dict): 
-        pass 
-    
+    def add_provenance(self, transformation: str, parameters: dict):
+        pass
+
     @abstractmethod
-    def get_provenances(self) -> list[dict[str, Any]]: 
-        """Este método retorna uma lista de dicionários com as informações de 
+    def get_provenances(self) -> list[dict[str, Any]]:
+        """Este método retorna uma lista de dicionários com as informações de
         proveniência de todas as transformações realizadas no objeto TimeSerie."""
         pass
 
     @abstractmethod
-    def get_provenance_by_transformation(self, transformation: str) -> dict[str, Any]: 
-        """Este método retorna as informações de proveniência de uma dada transformação 
+    def get_provenance_by_transformation(self, transformation: str) -> dict[str, Any]:
+        """Este método retorna as informações de proveniência de uma dada transformação
         realizadas no objeto TimeSerie."""
         pass
 
     @abstractmethod
-    def get_last_transformation(self, transformation: str) -> dict[str, Any]: 
+    def get_last_transformation(self, transformation: str) -> dict[str, Any]:
         """Este método retorna informações da ultima transformação realizada no objeto TimeSerie."""
         pass
 
     @abstractmethod
-    def apply_transformation(self, transformation: str, **kwargs) -> Any : 
-        """Este método aplica uma transformação ao objeto TimeSerie e retorna um novo 
-        objeto TimeSerie com as informações de proveniência atualizadas. Ele recebe como 
+    def apply_transformation(self, transformation: str, **kwargs) -> Any:
+        """Este método aplica uma transformação ao objeto TimeSerie e retorna um novo
+        objeto TimeSerie com as informações de proveniência atualizadas. Ele recebe como
         parâmetros o nome da transformação e os parâmetros específicos da transformação."""
         pass
+
 
 class ITimeSerie(ITimeSeriesProcessor, IProvenancable):
     """
     Interface que estende as outras interfaces. ë apenas uma Marker Interface
     """
+
     pass
+
 
 class TimeSerie(ITimeSerie):
     def __init__(self, *args, format, features_qty, **kwargs):
@@ -116,7 +125,7 @@ class TimeSerie(ITimeSerie):
     def __repr__(self):
         # Retorna uma representação em string do objeto TimeSerie
         return f'TimeSerie(format={self.format}, features={self.features}, df=\n{self.df.__repr__()})'
-        
+
     def to_long(self):
         # Converte a série temporal para o formato Long
         # Implementação aqui
@@ -139,13 +148,13 @@ class TimeSerie(ITimeSerie):
             raise NotImplementedError('Not implemented for long format')
         return self.df.columns.size > 2
 
-    def split(self) -> list[TS]: # Alternativa: list['TimeSerie']
+    def split(self) -> list[TS]:  # Alternativa: list['TimeSerie']
         # TODO: garantir que a primeira coluna seja o indice no Dataframe quando o formato for long ou wide
         # TODO: garantir que a primeira coluna seja do tipo Timesamp (datetime) quando o formato for long ou wide
         # Cria várias séries temporais univariadas à partir de uma série temporal multivariada
         result = []
         if self.format == 'long':
-            # TODO: Implementar para o caso de formato longo.  
+            # TODO: Implementar para o caso de formato longo.
             pass
         elif self.format == 'wide':
             # Por contrato a primeira coluna é sempre o timestamp
@@ -154,7 +163,7 @@ class TimeSerie(ITimeSerie):
                 if idx == 0:
                     continue
                 my_df = self.df[[timestamp_col, col]]
-                # TODO: criar um novo objeto TimeSerie 
+                # TODO: criar um novo objeto TimeSerie
                 my_ts = TimeSerie(data=my_df, format='wide', features_qty=2)
                 logger.debug('---------------------------------------------------')
                 logger.debug(f'univariate {idx}' + '\n ' + str(my_df))
@@ -187,7 +196,7 @@ class TimeSerie(ITimeSerie):
             if (list_of_ts[0].df).index.name == 'None':
                 (list_of_ts[0].df).set_index(timestamp_column_name, inplace=True)
             return list_of_ts[0]
-        
+
         # Junta os dataframes em uma série temporal multivariada
         if not isinstance(multivariate_df[timestamp_column_name][0], datetime):
             # Se a coluna timestamp não for do tipo datetime, converter para datetime.
@@ -210,7 +219,7 @@ class TimeSerie(ITimeSerie):
         # Garantindo que a primeira coluna seja o indice no Dataframe quando o formato for long ou wide
         # Define a primeira coluna como índice do dataframe, caso já não seja
         if (multivariate_ts.df).index.name == 'None':
-                (multivariate_ts.df).set_index(timestamp_column_name, inplace=True)
+            (multivariate_ts.df).set_index(timestamp_column_name, inplace=True)
         multivariate_ts.df.set_index(timestamp_column_name, inplace=True)
 
         # Imprime a série temporal multivariada
@@ -220,20 +229,20 @@ class TimeSerie(ITimeSerie):
     ### ----------------------------- Métodos de IProvenancable ----------------------------------
 
     def add_provenance(self, transformation: str, parameters: dict):
-        # Este método adiciona informações de proveniência ao objeto TimeSerie para 
-        # uma transformação específica. Ele recebe como parâmetros o nome da transformação 
+        # Este método adiciona informações de proveniência ao objeto TimeSerie para
+        # uma transformação específica. Ele recebe como parâmetros o nome da transformação
         # e um dicionário com os parâmetros usados na transformação.
         # TODO: Implementar add_provenance()
         pass
 
     def get_provenances(self) -> list[dict[str, Any]]:
-        # Este método retorna uma lista de dicionários com as informações de 
+        # Este método retorna uma lista de dicionários com as informações de
         # proveniência de todas as transformações realizadas no objeto TimeSerie.
         # TODO: Implementar get_provenances()
         return []
 
     def get_provenance_by_transformation(self, transformation: str) -> dict[str, Any]:
-        # Este método retorna as informações de proveniência de uma dada transformação 
+        # Este método retorna as informações de proveniência de uma dada transformação
         # realizadas no objeto TimeSerie.
         # TODO: Implementar get_provenance_by_transformation()
         return {}
@@ -242,13 +251,13 @@ class TimeSerie(ITimeSerie):
         # TODO: Implementar get_provenance_by_transformation()
         return {}
 
-    def apply_transformation(self, transformation: str, **kwargs) -> Optional['TimeSerie']: 
-        """Este método aplica uma transformação ao objeto TimeSerie e retorna um novo 
-        objeto TimeSerie com as informações de proveniência atualizadas. Ele recebe como 
+    def apply_transformation(self, transformation: str, **kwargs) -> Optional['TimeSerie']:
+        """Este método aplica uma transformação ao objeto TimeSerie e retorna um novo
+        objeto TimeSerie com as informações de proveniência atualizadas. Ele recebe como
         parâmetros o nome da transformação e os parâmetros específicos da transformação."""
         # TODO: Implementar apply_transformation()
         return TimeSerie.empty()
-    
+
     ### ------------------------- Outros Métodos Estáticos da classe -----------------------------
 
     @staticmethod

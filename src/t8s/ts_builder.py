@@ -6,12 +6,13 @@ from typing import Any, Optional
 from pathlib import Path
 from datetime import datetime
 from t8s.log_config import LogConfig
-from t8s.ts import TimeSerie # , ITimeSerie, ITimeSeriesProcessor, IProvenancable
+from t8s.ts import TimeSerie  # , ITimeSerie, ITimeSeriesProcessor, IProvenancable
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
 logger = LogConfig().getLogger()
+
 
 class ReadStrategy(ABC):
     """
@@ -32,7 +33,8 @@ Concrete Strategies implement the algorithm while following the base Strategy
 interface. The interface makes them interchangeable in the Context.
 """
 
-class TSBuilder():
+
+class TSBuilder:
     """
     The Context defines the interface of interest to clients.
     """
@@ -101,6 +103,7 @@ class TSBuilder():
     def empty() -> TimeSerie:
         return TimeSerie.empty()
 
+
 class ReadParquetFile(ReadStrategy):
     def do_read(self, data: Path) -> Optional['TimeSerie']:
         logger.info('Using ReadParquetFile strategy to read data from: ' + str(data))
@@ -137,10 +140,11 @@ class ReadParquetFile(ReadStrategy):
         df = pd.read_parquet(data)
         # TODO: garantir que a primeira coluna seja um Timestamp quando o formato for long ou wide
         logger.debug('\ndf:\n' + str(df))
-        # Cria o objeto 
+        # Cria o objeto
         ts = TimeSerie(df, format=format, features_qty=features_qty)
         logger.debug('\nts:\n' + str(ts))
         return ts
+
 
 class ReadCsvFile(ReadStrategy):
     def do_read(self, data: list) -> Optional['TimeSerie']:
