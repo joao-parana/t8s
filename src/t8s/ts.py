@@ -108,7 +108,6 @@ class ITimeSerie(ITimeSeriesProcessor, IProvenancable):
     """
     Interface que estende as outras interfaces. ë apenas uma Marker Interface
     """
-
     pass
 
 

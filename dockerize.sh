@@ -7,6 +7,8 @@ set -e
 # will be reflected in the installed package without needing to reinstall it.
 python -m pip install --editable .
 python -m pip freeze --exclude-editable > constraints.txt
+# Reformat Python code source
+python -m black .
 
 # Build the package and publish to PyPi.org
 hatch clean
