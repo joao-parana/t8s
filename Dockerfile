@@ -17,7 +17,7 @@ ENV PATH="$VIRTUALENV/bin:$PATH"
 
 # Copy and install requirements
 COPY --chown=gamma pyproject.toml constraints.txt ./
-RUN python -m pip install --upgrade pip setuptools && \
+RUN python -m pip install --upgrade pip setuptools hatch && \
     python -m pip install --no-cache-dir -c constraints.txt ".[dev]"
 
 COPY --chown=gamma src/ src/
