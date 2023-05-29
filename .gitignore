@@ -1,5 +1,7 @@
 __pycache__/
 ts*.parquet
+ts*.csv
+ts*.tsv
 dist/
 lixo*
 *.log

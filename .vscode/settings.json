@@ -1,0 +1,7 @@
+{
+    "files.trimTrailingWhitespace": true,
+    "[markdown]": {
+        "files.trimTrailingWhitespace": true
+    }
+}
+
