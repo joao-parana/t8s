@@ -61,4 +61,9 @@ Dessa forma, o Husky atua como um mecanismo para executar o cz-cli automaticamen
 
 Em resumo, o cz-cli do Commitizen é uma ferramenta para criar mensagens de commit padronizadas, enquanto o Husky é uma ferramenta para automatizar tarefas do Git. Ao combiná-los, você pode automatizar a geração de mensagens de commit com o formato apropriado definido pelo Commitizen usando o Husky como um gatilho para executar o cz-cli.
 
+Veja abaixo um exemplo de chamada para `git cz`  em vez de `git commit` que direciona o desenvolvedor a escrever uma mensagem de `commit` em conformidade com os padrões.
+
+![add commit](https://raw.githubusercontent.com/joao-parana/t8s/master/husky/add-commit.png)]
+
+
 
