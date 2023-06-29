@@ -63,7 +63,7 @@ Em resumo, o cz-cli do Commitizen é uma ferramenta para criar mensagens de comm
 
 Veja abaixo um exemplo de chamada para `git cz`  em vez de `git commit` que direciona o desenvolvedor a escrever uma mensagem de `commit` em conformidade com os padrões.
 
-![add commit](https://raw.githubusercontent.com/joao-parana/t8s/master/husky/add-commit.png)]
+![add commit](https://raw.githubusercontent.com/joao-parana/t8s/master/husky/add-commit.png)
 
 
 
