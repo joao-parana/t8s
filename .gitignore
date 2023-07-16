@@ -7,4 +7,5 @@ lixo*
 *.log
 .ruff_cache
 .pytest_cache
+*.mp4
 

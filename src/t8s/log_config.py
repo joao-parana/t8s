@@ -27,11 +27,11 @@ class LogConfig(metaclass=LogConfigMeta):
         self.logger = None
         self.initialize_logger(level=logging.DEBUG)
 
-    def initialize_logger(self, level=logging.DEBUG):
+    def initialize_logger(self, level=logging.DEBUG, log_file: str = 'logs/timeseries.log'):
         my_global_logger = logging.getLogger(__name__)
         my_global_logger.setLevel(level)
         # logger_handler = RotatingFileHandler('timeseries.log', maxBytes=1_000_000, backupCount=10)
-        logger_handler = logging.FileHandler('timeseries.log', mode='w')
+        logger_handler = logging.FileHandler(log_file, mode='w')
         # logger_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s | %(message)s")) #"%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(funcName)s(%(lineno)d) - %(message)s"
         logger_handler.setFormatter(
             logging.Formatter("%(levelname)s - %(filename)s - %(funcName)s | %(message)s")
