@@ -12,15 +12,18 @@ logger = LogConfig().getLogger()
 def step_impl(context):
     pass
 
-@when('we implement {number:d} tests')
+@when('we implement {number} tests')
 def step_impl(context, number):  # -- NOTE: number is converted into integer
-    assert number > 1 or number == 0
-    context.tests_count = number
+    assert int(number) > 1 or int(number) == 0
+    context.tests_count = int(number)
+    logger.info(f'STEP: WHEN we implement {number} tests')
 
 @then('behave will test them for us!')
 def step_impl(context):
-    # assert context.failed is False
+    assert context.failed is False
     assert context.tests_count >= 0
+
+# --------------------------------------------------------------------------------
 
 @given(u'que temos o behave instalado')
 def step_impl(context):
@@ -38,3 +41,23 @@ def step_impl(context, qty):
 def step_impl(context):
     logger.info('STEP: Then o behave vai testar pra gente!')
     logger.info('context' + str(context) + str(type(context)))
+
+# --------------------------------------------------------------------------------
+
+@given(u'a number {left}')
+def step_impl(context, left):
+    logger.info(f'STEP: Given a number {left}')
+    context.left = left
+
+
+@when(u'add a number {right}')
+def step_impl(context, right):
+    logger.info(f'STEP: When add a number {right} value')
+    context.right = right
+
+
+@then(u'the sum is {result}')
+def step_impl(context, result):
+    logger.info(f'STEP: Then the sum is {result}')
+    # for idx in range(len(context.left)):
+    assert int(result) == (int(context.left) + int(context.right))
