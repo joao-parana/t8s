@@ -9,6 +9,19 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Python: Executar testes behave",
+            "type": "python",
+            "request": "launch",
+            "module": "behave",
+            "console": "integratedTerminal",
+            "args": [
+                "--no-capture",
+                "--no-capture-stderr",
+                "--no-skipped",
+                "${file}"
+            ]
         }
     ]
 }

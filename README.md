@@ -12,6 +12,7 @@
 
 - [Installation](#installation)
 - [Testing](#testing)
+- [Publishing](#publishing)
 - [License](#license)
 
 ## Installation
@@ -27,9 +28,11 @@ Check Linter rules using **PyRight** (https://microsoft.github.io/pyright)
 pyright --level warning .
 ```
 
-## Testing and publishing
+## Testing
 
 ![BDD](docs/bdd.png)
+
+Veja também [BDD](docs/behave.md)
 
 ```batch
 # Para inspecionar a configuração do ambiente de testes:
@@ -40,7 +43,12 @@ hatch build
 hatch run python3 main.py
 ./test-all.sh
 # Usando BDD com behave (https://behave.readthedocs.io/en/latest/)
-behave --logging-level INFO
+python3 -m behave --logging-level INFO --no-capture --no-capture-stderr --no-skipped
+```
+
+## Publishing
+
+```bash
 hatch publish
 ```
 

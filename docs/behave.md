@@ -51,6 +51,14 @@ def step_impl(context, qty):
 @then(u'o behave vai testar pra gente!')
 ```
 
-O framework passa os dados variáveis para os passos usando o parâmetro `context` que é um objeto do tipo `Context` que pode ser usado para compartilhar dados entre os passos.
+O framework passa os dados variáveis para os passos usando o parâmetro `context` que é um objeto do tipo `Context` que pode ser usado para compartilhar dados entre os passos. Além disso na step `'implementamos {qty} testes'` o runtime cria a variavel `qty` localmente, que pode ser usada no código Python.
 
 Veja a definição da [gramatica Gherkin para Português](https://github.com/cucumber/gherkin/blob/main/gherkin-languages.json#L2698)
+
+Podemos executar o teste de uma feature especifica usando o comando como mostrado abaixo:
+
+```bash
+python3 -m behave --no-capture --no-capture-stderr --no-skipped features/02.example.feature
+```
+
+O behave usa a classe `behave.runner:Runner` para executar os testes de aceitação.
