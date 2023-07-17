@@ -43,7 +43,9 @@ hatch build
 hatch run python3 main.py
 ./test-all.sh
 # Usando BDD com behave (https://behave.readthedocs.io/en/latest/)
-python3 -m behave --logging-level INFO --no-capture --no-capture-stderr --no-skipped
+rm logs/timeseries.log
+python3 -m behave --logging-level INFO --no-capture --no-capture-stderr --no-skipped features
+cat logs/timeseries.log
 ```
 
 ## Publishing

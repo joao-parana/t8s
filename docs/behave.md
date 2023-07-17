@@ -54,7 +54,9 @@ Veja a definição da [gramatica Gherkin para Português](https://github.com/cuc
 Podemos executar o teste de uma feature especifica usando o comando como mostrado abaixo:
 
 ```bash
-python3 -m behave --no-capture --no-capture-stderr --no-skipped features/02.example.feature
+rm logs/timeseries.log
+python3 -m behave --logging-level INFO --no-capture --no-capture-stderr --no-skipped \
+        silly-features/03.example.feature; cat logs/timeseries.log
 ```
 
 O behave usa a classe `behave.runner:Runner` para executar os testes de aceitação.

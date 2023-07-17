@@ -21,7 +21,10 @@
                 "--no-capture-stderr",
                 "--no-skipped",
                 "${file}"
-            ]
+            ],
+            "env": {
+                "WORKSPACE_DIR": "/Volumes/dev/t8s"
+            }
         }
     ]
 }

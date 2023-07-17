@@ -2,7 +2,8 @@ Feature: Sum a Pair
   It sums a pair of numbers
 
   Scenario Outline: adding numbers
-    Given a number <left>
+    Given a workspace WORKSPACE_DIR
+    And a number <left>
     When add a number <right>
     Then the sum is <result>
 
