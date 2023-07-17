@@ -1,9 +1,5 @@
 # behave
 
-    [![PyPI - Stable Version](https://img.shields.io/pypi/v/behave.svg)](https://pypi.org/project/behave)
-    [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/behave.svg)](https://pypi.org/project/behave)
-    [![Downloads](https://img.shields.io/pypi/dm/behave)](https://pypistats.org/packages/behave)
-
 O módulo behave é um framework de testes orientado a comportamento (BDD - Behavior Driven Development) para uso em projetos Python. Ele permite que você escreva testes em uma linguagem natural e legível para humanos, que são então traduzidos em código Python executável. O behave é baseado na linguagem `Gherkin`, que é uma linguagem de especificação de comportamento que usa gramática propria com palavras-chave como "Given", "When" e "Then" para descrever o comportamento esperado de um sistema.
 
 O behave é útil para testar sistemas complexos e permite escrever testes em uma linguagem que é facilmente compreensível para todas as partes interessadas, incluindo desenvolvedores, gerentes de projeto, _product owners_ e clientes. Ele também é mais abrangente e ajuda a garantir que o código seja testado em termos de comportamento esperado, em vez de apenas testar a funcionalidade individual de cada componente.
