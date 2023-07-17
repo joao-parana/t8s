@@ -29,6 +29,8 @@ pyright --level warning .
 
 ## Testing and publishing
 
+![BDD](docs/bdd.png)
+
 ```batch
 # Para inspecionar a configuração do ambiente de testes:
 hatch config show
@@ -37,6 +39,8 @@ hatch build
 # Edit your main.py code
 hatch run python3 main.py
 ./test-all.sh
+# Usando BDD com behave (https://behave.readthedocs.io/en/latest/)
+behave --logging-level INFO
 hatch publish
 ```
 
