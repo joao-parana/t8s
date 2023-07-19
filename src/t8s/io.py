@@ -25,7 +25,7 @@ null_path: Path = Path('/NullPathObject')
 
 
 class IO:
-    # A linguagem Python não um meio de definir um método privado, mas o uso de dois underscore
+    # A linguagem Python não tem um meio de definir um método privado, mas o uso de dois underscore
     # no inicio do nome do método é uma convenção que indica que o método é privado e que estamos
     # usando a técnica name mangling para impedir a visibilidade padrão. Portanto o método
     # __check_csv_schema não deve ser chamado diretamente de fora da classe.
@@ -195,7 +195,7 @@ class IO:
         # para representação de datas e horas.
         # Veja: https://www.w3.org/TR/NOTE-datetime
         df.to_csv(path, sep=',', na_rep='NaN', float_format=None,
-            header=True, index=True, index_label=None, mode='w',
+            header=True, index=False, index_label=None, mode='w',
             encoding='utf-8', compression=None, quoting=csv.QUOTE_MINIMAL,
             quotechar='"', lineterminator=os.linesep, chunksize=None,
             date_format=None, doublequote=True, escapechar=None,

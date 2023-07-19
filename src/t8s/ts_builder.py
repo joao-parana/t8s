@@ -7,6 +7,7 @@ from pathlib import Path
 from datetime import datetime
 from t8s.log_config import LogConfig
 from t8s.ts import TimeSerie  # , ITimeSerie, ITimeSeriesProcessor, IProvenancable
+import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -132,12 +133,22 @@ class ReadParquetFile(ReadStrategy):
         # Imprime as colunas do arquivo Parquet
         # print('metadata.column_names', metadata.column_names)
         # Imprime as estatísticas do arquivo Parquet
-        logger.debug(metadata.row_group(0).column(0).statistics)
+        if metadata.num_row_groups > 0:
+            for idx in range(metadata.num_columns):
+                logger.debug(metadata.row_group(0).column(idx).statistics)
+                logger.debug('-----------------------------')
+        # logger.debug(metadata.row_group(0).column(0).statistics)
         # Leia o arquivo Parquet
         parquet_file = pq.ParquetFile(data)
         logger.debug('\ntype(parquet_file): ' + str(type(parquet_file)) + '\n' + str(parquet_file))
         logger.debug('\n-------------------------------')
-        df = pd.read_parquet(data)
+
+        # ATENÇÃO: o método read_parquet() do Pandas não gera o Dataframe com os tipos corretos.
+        # Em vez de criar float32 para o physical_type FLOAT do Parquet, ele cria float64.
+        # df = pd.read_parquet(data)
+        df = parquet_file.read().to_pandas()
+        print(df.info())
+
         # TODO: garantir que a primeira coluna seja um Timestamp quando o formato for long ou wide
         logger.debug('\ndf:\n' + str(df))
         # Cria o objeto

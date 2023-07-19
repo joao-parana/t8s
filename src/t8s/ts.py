@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from datetime import datetime
+import types
 import yaml
 from abc import ABC, abstractmethod
 from typing import Any, Optional, Type, TypeVar
@@ -71,8 +72,8 @@ class IProvenancable(ABC):
         self.features: str
         self.df: pd.DataFrame
 
-    """Este método adiciona informações de proveniência ao objeto TimeSerie para 
-    uma transformação específica. Ele recebe como parâmetros o nome da transformação 
+    """Este método adiciona informações de proveniência ao objeto TimeSerie para
+    uma transformação específica. Ele recebe como parâmetros o nome da transformação
     e um dicionário com os parâmetros usados na transformação."""
 
     @abstractmethod
@@ -118,12 +119,40 @@ class TimeSerie(ITimeSerie):
         assert format in ['long', 'wide'], "format must be 'long' or 'wide'"
         self.format: str = format
         self.features: str = str(features_qty)
-        self.df = pd.DataFrame(*args, **kwargs)
-        # TODO: garantir que a primeira coluna seja um Timestamp quando o formato for long ou wide
+        self.df = pd.DataFrame()
+        if len(args) > 0:
+            for idx, arg in enumerate(args):
+                if idx == 0 and isinstance(arg, pd.DataFrame):
+                    self.df = arg
+                if idx == 0 and isinstance(arg, dict):
+                    if 'content' in arg.keys() and arg['content'] == 'EMPTY':
+                        return
+                    self.df = pd.DataFrame(*args, **kwargs)
+                break # Apenas o primeiro parâmetro precisa de tratamento especial.
+        else:
+           for key, kwarg_value in kwargs.items():
+                if key == 'data' and isinstance(kwarg_value, pd.DataFrame):
+                    self.df = kwarg_value
+                if key == 'data' and isinstance(kwarg_value, dict):
+                    self.df = pd.DataFrame(*args, **kwargs)
+                if key == 'data' and isinstance(kwarg_value, str) and kwarg_value == 'EMPTY':
+                    return
+                break # Apenas o parâmetro 'data' precisa de tratamento especial.
+
+        # TODO: garantir que a primeira coluna seja um Timestamp tanto para o formato long quanto wide
+        # Por hora lanço Exception
+        if self.df.empty:
+            raise Exception('Não foram fornecidos dados para criação da série temporal. Use o método TimeSerie.empty() se desejar criar uma série temporal vazia')
+        first_column_type = self.df[self.df.columns[0]].dtype
+        if first_column_type != 'datetime64[ns]':
+            raise Exception('A primeira coluna deve ser um Timestamp (datetime)')
+        logger.debug('Objeto TimeSerie construido com sucesso')
 
     def __repr__(self):
+        columns_types = [type(self.df[col][0]) for col in self.df.columns]
         # Retorna uma representação em string do objeto TimeSerie
-        return f'TimeSerie(format={self.format}, features={self.features}, df=\n{self.df.__repr__()})'
+        return f'TimeSerie(format={self.format}, features={self.features}, ' + \
+               f'df=\n{self.df.__repr__()}) + \ntypes: {columns_types}'
 
     def to_long(self):
         # Converte a série temporal para o formato Long
@@ -261,4 +290,4 @@ class TimeSerie(ITimeSerie):
 
     @staticmethod
     def empty() -> Any:
-        return TimeSerie(format='long', features_qty=0, data={})
+        return TimeSerie(data='EMPTY', format='long', features_qty=0)

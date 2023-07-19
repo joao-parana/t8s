@@ -37,6 +37,8 @@ if __name__ == "__main__":
     # np.float32 e np.int32 respectivamente, pois o padrão é np.float64 e np.int64
     data['temperatura'] = np.array(data['temperatura'], dtype=np.float32)
     data['velocidade'] = np.array(data['velocidade'], dtype=np.int32)
+    df = pd.DataFrame(data)
+    df.to_csv('data/csv/ts_01.csv', index=False)
     # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e
     # velocidade para o proposito de teste
     ts = TimeSerie(data, format='wide', features_qty=3)

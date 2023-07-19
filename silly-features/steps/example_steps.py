@@ -3,7 +3,7 @@
 
 import os
 from t8s.log_config import LogConfig
-from behave import given, when, then, step
+from behave import given, when, then, model, step
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
 
 LogConfig().initialize_logger(DEBUG)
@@ -52,6 +52,12 @@ def step_impl(context, workspace):
     logger.info(f'STEP: Given a workspace -> context.workspace {context_workspace}')
     context.workspace = context_workspace
 
+@given(u'a valid user logged in')
+def step_impl(context):
+    user = 'fulano'
+    logger.info(f'STEP: Given a valid user logged in ({user})')
+    context.user = 'fulano'
+
 @given(u'a number {left}')
 def step_impl(context, left):
     logger.info(f'STEP: Given a number {left}, context.workspace = {context.workspace}')
@@ -67,3 +73,24 @@ def step_impl(context, result):
     logger.info(f'STEP: Then the sum is {result}')
     # for idx in range(len(context.left)):
     assert int(result) == (int(context.left) + int(context.right))
+
+@given(u'a simple silly step')
+def step_impl(context):
+    logger.info(u'STEP: Given a simple silly step')
+
+@then(u'the last step has a final table')
+def step_impl(context):
+    assert isinstance(context.table, model.Table)
+    table: model.Table = context.table
+    headings: list[str] = table.headings
+    rows: list[list[str]] = [ list(row) for row in table.rows ]
+    logger.info(f'STEP: Then the last step has a final table: {table}, {type(table)}')
+    logger.info(f'STEP: Then the last step has a final table -> headings: {headings}, {type(headings)}')
+    logger.info(f'STEP: Then the last step has a final table -> rows:{rows}, {type(rows)}')
+    for idx, row in enumerate(table.rows):
+        actual: model.Row = row
+        v1 = actual.get(headings[0])
+        v2 = actual.get(headings[1])
+        v3 = actual.get(headings[2])
+        logger.info(f'STEP: Then the last step has a final table -> ' +
+            f'table.rows[{idx}]: [ {v1}, {v2}, {v3} ], {type(v1)}, {type(v2)}, {type(v3)}')
