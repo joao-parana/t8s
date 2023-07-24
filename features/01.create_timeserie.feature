@@ -1,33 +1,17 @@
-Feature: Sum a Pair
-  It sums a pair of numbers
+Feature: Create a time series set using Dataframe, CSV and Parquet
+
+Value Statement:
+  As a data analyst
+  I want the hability to create a timeseries set using Dataframe, CSV and Parquet
+  So that I can start studying the data right away and propose solutions for the business.
 
   Background:
-    Given a workspace WORKSPACE_DIR
-    And a valid user logged in
+    Given that I have a T8S_WORKSPACE_DIR and a bunch of CSV and Parquet files to analyze
 
-  # Esquema do Cenário: adicionando números
-  #   Dado a workspace WORKSPACE_DIR
-  #   E um número <left>
-  #   Quando somar com <right>
-  #   Então o resultado é <result>
-
-  Scenario Outline: adding numbers
-    Given a number <left>
-    When add a number <right>
-    Then the sum is <result>
-
-  Examples: Numbers to sum and expected results
-    | left  | right | result |
-    | 9     | 3     | 12     |
-    | 8     | 7     | 15     |
-    | 4     | 17    | 21     |
-    | 6     | 15    | 21     |
-    | 10    | 3     | 13     |
-
-  Scenario: using a data table
-    Given a simple silly step
-    Then the last step has a final table:
-        | Name   | City | Birthday |
-        | Alonso | Barcelona | 20/07/1981 |
-        | Bred   | London  | 17/05/1980 |
-        | Pedro   | Brasilia  | 19/08/1958 |
+  Scenario: First, I create 2 time series with sample data using Dataframes and save it at T8S_WORKSPACE/data directory
+    Given a start timestamp, a number of records and a time interval
+    When I create 2 time series using Dataframes with sample data
+    Then I have a time series with the `correct` number of rows and columns, schema and time interval
+    And I have a CSV file in T8S_WORKSPACE/data/csv correctelly formated
+    And I have a Parquet file in T8S_WORKSPACE/data/parquet correctelly formated with metadata annotations
+    # Constraint: The first  Dataframe doesn't have nulls or invalid values, but the second does

@@ -7,7 +7,7 @@ import pandas as pd
 from t8s import get_sample_df
 from t8s.ts import TimeSerie
 from t8s.ts_writer import TSWriter, WriteParquetFile
-import pyarrow.parquet as pq
+import pyarrow.parquet as pq         # type: ignore
 
 
 from t8s.log_config import LogConfig
@@ -60,7 +60,10 @@ def check_schema(ts, parquet_file: Path, types: list[type]):
 def test_to_parquet():
     TimeSerie.empty()
     # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e velocidade
-    df, last_ts = get_sample_df(datetime(2022, 1, 1, 0, 0, 0))
+
+    number_of_records = 4
+    time_interval = 1 # hour
+    df, last_ts = get_sample_df(number_of_records, datetime(2022, 1, 1, 0, 0, 0), time_interval)
     columns_types = [type(df[col][0]) for col in df.columns]
     print('columns_types =', columns_types)
     # data = df.to_dict()

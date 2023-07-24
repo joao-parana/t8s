@@ -7,7 +7,7 @@ name = "t8s"
 dynamic = ["version"]
 description = ''
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 keywords = []
 authors = [
@@ -16,7 +16,6 @@ authors = [
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
@@ -60,11 +59,11 @@ stubPath = "src/stubs"
 reportMissingImports = true
 reportMissingTypeStubs = false
 
-pythonVersion = "3.10"
+pythonVersion = "3.11"
 pythonPlatform = "Linux"
 
 executionEnvironments = [
-  { root = "src/t8s", pythonVersion = "3.10", pythonPlatform = "Linux", extraPaths = [ "src/stubs" ] },
+  { root = "src/t8s", pythonVersion = "3.11", pythonPlatform = "Linux", extraPaths = [ "src/stubs" ] },
   { root = "tests"},
   { root = "src" }
 ]

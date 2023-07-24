@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
 from pathlib import Path
 from datetime import datetime
 import types
@@ -8,8 +9,8 @@ from abc import ABC, abstractmethod
 from typing import Any, Optional, Type, TypeVar
 
 import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
+import pyarrow as pa         # type: ignore
+import pyarrow.parquet as pq # type: ignore
 
 from t8s.log_config import LogConfig
 
@@ -145,7 +146,9 @@ class TimeSerie(ITimeSerie):
             raise Exception('Não foram fornecidos dados para criação da série temporal. Use o método TimeSerie.empty() se desejar criar uma série temporal vazia')
         first_column_type = self.df[self.df.columns[0]].dtype
         if first_column_type != 'datetime64[ns]':
-            raise Exception('A primeira coluna deve ser um Timestamp (datetime)')
+            print(self.df.info())
+            raise Exception('A primeira coluna deve ser um Timestamp (datetime)' +
+            ' experado ' + 'datetime64[ns]' + ' recebido ' + str(first_column_type))
         logger.debug('Objeto TimeSerie construido com sucesso')
 
     def __repr__(self):
@@ -176,7 +179,7 @@ class TimeSerie(ITimeSerie):
             raise NotImplementedError('Not implemented for long format')
         return self.df.columns.size > 2
 
-    def split(self) -> list[TS]:  # Alternativa: list['TimeSerie']
+    def split(self) -> list[TimeSerie]:  # Alternativa: list['TimeSerie']
         # TODO: garantir que a primeira coluna seja o indice no Dataframe quando o formato for long ou wide
         # TODO: garantir que a primeira coluna seja do tipo Timesamp (datetime) quando o formato for long ou wide
         # Cria várias séries temporais univariadas à partir de uma série temporal multivariada

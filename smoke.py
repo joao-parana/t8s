@@ -6,6 +6,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import t8s
+from t8s import get_sample_df
 from t8s.ts import TimeSerie
 from t8s.ts_builder import TSBuilder, ReadParquetFile, ReadCsvFile
 from t8s.log_config import LogConfig
@@ -15,31 +16,22 @@ from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
 if __name__ == "__main__":
     # print('globals:', globals())
     # The client code.
-    LogConfig().initialize_logger(DEBUG)
+    LogConfig().initialize_logger(DEBUG, log_file = 'logs/smoke.log')
     logger = LogConfig().getLogger()
+    number_of_records = 4
+    time_interval = 1 # hour
+    df, last_ts = get_sample_df(number_of_records, datetime(2022, 1, 1, 0, 0, 0), time_interval)
     ts = TSBuilder.empty()
     # initialize_logger(INFO)
     logger.info('t8s package version:' + t8s.__version__)
     path_str: str = 'ts_01.parquet'
     path = Path(path_str)
+
     # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e velocidade
-    data = {
-        'timestamp': [
-            datetime(2022, 1, 1, 0, 0, 0),
-            datetime(2022, 1, 1, 1, 0, 0),
-            datetime(2022, 1, 1, 2, 0, 0),
-            datetime(2022, 1, 1, 3, 0, 0),
-        ],
-        'temperatura': np.array([25.0, 26.0, 27.0, 23.2], dtype=np.float32),
-        'velocidade': [2000, 1100, 1200, 4000],
-    }
-    # Convertendo os tipos de dado para temperatura e velocidade para
-    # np.float32 e np.int32 respectivamente, pois o padrão é np.float64 e np.int64
-    data['temperatura'] = np.array(data['temperatura'], dtype=np.float32)
-    data['velocidade'] = np.array(data['velocidade'], dtype=np.int32)
-    # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e
-    # velocidade para o proposito de teste
-    ts = TimeSerie(data, format='wide', features_qty=3)
+    number_of_records = 4
+    time_interval = 1 # hour
+    dataframe, last_ts = get_sample_df(number_of_records, datetime(2022, 1, 1, 0, 0, 0), time_interval)
+    ts = TimeSerie(dataframe, format='wide', features_qty=3)
     cols_str = [name for name in sorted(ts.df.columns)]
     cols_str = ', '.join(cols_str)
     logger.info(f'Dataframe com {len(ts.df.columns)} colunas: {cols_str}')
@@ -105,4 +97,3 @@ if __name__ == "__main__":
     print(ts)
 
     # --------------------------------------------------------------------------------
-    

@@ -10,42 +10,42 @@ LogConfig().initialize_logger(DEBUG)
 logger = LogConfig().getLogger()
 
 @given('we have behave installed')
-def step_impl(context):
+def check_behave_istalled(context):
     pass
 
 @when('we implement {number} tests')
-def step_impl(context, number):  # -- NOTE: number is converted into integer
+def check_number(context, number):  # -- NOTE: number is converted into integer
     assert int(number) > 1 or int(number) == 0
     context.tests_count = int(number)
     logger.info(f'STEP: WHEN we implement {number} tests')
 
 @then('behave will test them for us!')
-def step_impl(context):
+def test(context):
     assert context.failed is False
     assert context.tests_count >= 0
 
 # --------------------------------------------------------------------------------
 
 @given(u'que temos o behave instalado')
-def step_impl(context):
+def check_behave_istalled_again(context):
     logger.info('STEP: Given que temos o behave instalado')
     logger.info('context' + str(context) + str(type(context)))
 
 
 @when(u'implementamos {qty} testes')
-def step_impl(context, qty):
+def check_qty(context, qty):
     logger.info(f'STEP: When implementamos {qty} testes')
     logger.info('context' + str(context) + str(type(context)))
 
 @then(u'o behave vai testar pra gente!')
-def step_impl(context):
+def teste(context):
     logger.info('STEP: Then o behave vai testar pra gente!')
     logger.info('context' + str(context) + str(type(context)))
 
 # --------------------------------------------------------------------------------
 
 @given(u'a workspace {workspace}')
-def step_impl(context, workspace):
+def set_workspace(context, workspace):
     workspace_dir = os.environ.get('WORKSPACE_DIR', '/Volumes/dev/t8s')
     logger.info(f'STEP: Given a workspace ${workspace} ({workspace_dir})')
     context_workspace = os.environ.get(workspace)
@@ -53,33 +53,33 @@ def step_impl(context, workspace):
     context.workspace = context_workspace
 
 @given(u'a valid user logged in')
-def step_impl(context):
+def select_user(context):
     user = 'fulano'
     logger.info(f'STEP: Given a valid user logged in ({user})')
     context.user = 'fulano'
 
 @given(u'a number {left}')
-def step_impl(context, left):
+def a_number(context, left):
     logger.info(f'STEP: Given a number {left}, context.workspace = {context.workspace}')
     context.left = left
 
 @when(u'add a number {right}')
-def step_impl(context, right):
+def another_number(context, right):
     logger.info(f'STEP: When add a number {right} value')
     context.right = right
 
 @then(u'the sum is {result}')
-def step_impl(context, result):
+def sum(context, result):
     logger.info(f'STEP: Then the sum is {result}')
     # for idx in range(len(context.left)):
     assert int(result) == (int(context.left) + int(context.right))
 
 @given(u'a simple silly step')
-def step_impl(context):
+def a_silly_step(context):
     logger.info(u'STEP: Given a simple silly step')
 
 @then(u'the last step has a final table')
-def step_impl(context):
+def final_table(context):
     assert isinstance(context.table, model.Table)
     table: model.Table = context.table
     headings: list[str] = table.headings

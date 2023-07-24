@@ -6,6 +6,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import t8s
+from t8s import get_sample_df
 from t8s.ts import TimeSerie
 from t8s.ts_builder import TSBuilder, ReadParquetFile, ReadCsvFile
 from t8s.log_config import LogConfig
@@ -23,25 +24,15 @@ if __name__ == "__main__":
     path_str: str = 'ts_01.parquet'
     path = Path(path_str)
     # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e velocidade
-    data = {
-        'timestamp': [
-            datetime(2022, 1, 1, 0, 0, 0),
-            datetime(2022, 1, 1, 1, 0, 0),
-            datetime(2022, 1, 1, 2, 0, 0),
-            datetime(2022, 1, 1, 3, 0, 0),
-        ],
-        'temperatura': np.array([25.0, 26.0, 27.0, 23.2], dtype=np.float32),
-        'velocidade': [2000, 1100, 1200, 4000],
-    }
-    # Convertendo os tipos de dado para temperatura e velocidade para
-    # np.float32 e np.int32 respectivamente, pois o padrão é np.float64 e np.int64
-    data['temperatura'] = np.array(data['temperatura'], dtype=np.float32)
-    data['velocidade'] = np.array(data['velocidade'], dtype=np.int32)
-    df = pd.DataFrame(data)
+    start_timestamp = datetime(2022, 1, 1, 0, 0, 0)
+    number_of_records = 4
+    time_interval = 1 # hour
+    logger.info(f'@given: -> Building a sample Dataframe')
+    df, last_ts = get_sample_df(number_of_records, start_timestamp, time_interval)
     df.to_csv('data/csv/ts_01.csv', index=False)
     # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e
     # velocidade para o proposito de teste
-    ts = TimeSerie(data, format='wide', features_qty=3)
+    ts = TimeSerie(df, format='wide', features_qty=3)
     print('ts.df.index.name:', "'" + str(ts.df.index.name) + "'")
     cols_str = [name for name in sorted(ts.df.columns)]
     cols_str = ', '.join(cols_str)
@@ -93,7 +84,7 @@ if __name__ == "__main__":
     # pd._libs.tslibs.timestamps.Timestamp é privado e devo usar pd.Timestamp
     assert type(ts.df['timestamp'][0]) == pd.Timestamp
     assert type(ts.df['temperatura'][0]) == np.float32
-    assert type(ts.df['velocidade'][0]) == np.int32
+    assert type(ts.df['velocidade'][0]) == np.float32
 
     print('---------------------------------------------------')
     univariate_list = ts.split()
@@ -182,11 +173,5 @@ if __name__ == "__main__":
     for col in df_whith_nans.columns:
         for value in df_whith_nans[col]:
             print(col, '\t', value, type(value))
-
-    # --------------------------------------------------------------------------------
-
-
-
-    # --------------------------------------------------------------------------------
 
     # --------------------------------------------------------------------------------

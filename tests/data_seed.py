@@ -19,7 +19,9 @@ if __name__ == "__main__":
     logger = LogConfig().getLogger()
     logger.info('t8s package version:' + t8s.__version__)
     # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e velocidade
-    df, last_ts = get_sample_df(datetime(2022, 1, 1, 0, 0, 0))
+    number_of_records = 4
+    time_interval = 1 # hour
+    df, last_ts = get_sample_df(number_of_records, datetime(2022, 1, 1, 0, 0, 0), time_interval)
     # Gravando o arquivo CSV
     # df.to_csv(, index=False)
     IO.dataframe_to_csv_file(df, Path('data/csv/ts_01.csv'))
@@ -34,7 +36,9 @@ if __name__ == "__main__":
     context.write(Path(path_str), ts1)
     # ---------------------------------------------------------------------------------------------
     # Outro caso de uso
-    df, last_ts = get_sample_df(last_ts + pd.Timedelta(hours=1))
+    number_of_records = 4
+    time_interval = 1 # hour
+    df, last_ts = get_sample_df(number_of_records, last_ts + pd.Timedelta(hours=1), time_interval)
     print('Original:', df)
     # altera a série temporal incluindo NaN e inválidos
     df.iloc[0, 1] = 'Missing'
