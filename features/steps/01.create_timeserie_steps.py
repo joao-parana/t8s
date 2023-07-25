@@ -134,3 +134,17 @@ def save_parquet(context):
 
     # Grava a série temporal ts2 em parquet
     # write_ts_to_parquet_file(context.ts2, context.PARQUET_PATH, 'ts_02.parquet')
+
+@then(u'I have a text representation for the first time serie like this:')
+def check_text(context):
+    logger.debug(f'check_text : context.text -> \n{str(context.text)}')
+    logger.debug(f'\ncheck_text : context.ts1 -> \n{str(context.ts1)}')
+    def assert_line_by_line(context):
+        ts1_line = str(context.ts1).splitlines()
+        for idx, line in enumerate(context.text.splitlines()):
+            logger.info(f'check_text : line {idx} -> \n"{line}" == "{ts1_line[idx]}"')
+            msg =f'context.text must be equal to str(ts1). Failed in line {idx} -> "{line}" != "{ts1_line[idx]}"'
+            assert line.strip() == ts1_line[idx].strip(), msg
+    assert_line_by_line(context)
+    logger.info('\ncheck_text passed !')
+

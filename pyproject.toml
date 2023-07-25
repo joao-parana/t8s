@@ -26,6 +26,8 @@ dependencies = [
   "pyyaml",
   "pyarrow",
   "pandas",
+  "behave",
+  "behave-pandas"
 ]
 
 [project.optional-dependencies]
@@ -89,7 +91,7 @@ cov = [
 ]
 
 [[tool.hatch.envs.all.matrix]]
-python = ["3.10", "3.11"]
+python = ["3.11"]
 
 [tool.hatch.envs.lint]
 detached = true
