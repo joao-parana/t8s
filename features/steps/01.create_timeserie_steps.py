@@ -1,22 +1,3 @@
-"""
-Feature: Create a time series set using Dataframe, CSV and Parquet
-
-Value Statement:
-  As a data analyst
-  I want the hability to create a timeseries set using Dataframe, CSV and Parquet
-  So that I can start studying the data right away and propose solutions for the business.
-
-  Background:
-    Given that I have a T8S_WORKSPACE_DIR and a bunch of CSV and Parquet files to analise
-
-  Create 2 time series with sample data using Dataframes and save in CSV files at T8S_WORKSPACE/data/csv directory
-    Given a start timestamp, a number of records and a time interval
-    When I create 2 time series using Dataframes with sample data
-    Then I have a time series with the `correct` number of rows and columns, schema and time interval
-    And I have a CSV file in T8S_WORKSPACE/data/csv correctelly formated
-    # Constraint: The first  Dataframe doesn't have nulls or invalid values, but the second does
-"""
-
 import os
 from pathlib import Path
 from datetime import datetime
@@ -28,24 +9,48 @@ from t8s.util import Util
 from t8s.io import IO
 from t8s.ts import TimeSerie
 from t8s.ts_writer import TSWriter, WriteParquetFile
-from behave import given, when, then, step
+from behave import given, when, then, use_step_matcher, step
+from behave.model import Table
+from behave_pandas import table_to_dataframe, dataframe_to_table
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
 
 LogConfig().initialize_logger(DEBUG)
 logger = LogConfig().getLogger()
 
-def clean_data_dir():
-    logger.info(f'clean_data_dir() called ...')
-    pass
+"""
+Feature: Create a time series set using Dataframe, CSV and Parquet
+
+Value Statement:
+  As a data analyst
+  I want the hability to create a timeseries set using Dataframe, CSV and Parquet
+  So that I can start studying the data right away and propose solutions for the business.
+
+  Background:
+    Given that I have a T8S_WORKSPACE_DIR and a bunch of CSV and Parquet files to analise
+"""
 
 @given(u'that I have a T8S_WORKSPACE_DIR and a bunch of CSV and Parquet files to analyze')
 def setup(context):
+    def clean_data_dir():
+        logger.info(f'clean_data_dir() called ...')
+        pass
+
+    clean_data_dir()
     logger.info(f'-------------------------------------------------')
     logger.info(f'Background @given: T8S_WORKSPACE_DIR = {context.T8S_WORKSPACE_DIR}')
     logger.info(f'Background@given:  CSV_PATH = {context.CSV_PATH}')
     logger.info(f'Background@given:  PARQUET_PATH = {context.PARQUET_PATH}')
     logger.info(f'-------------------------------------------------')
     # A forma de passar estes dados para os steps seguintes é usando o objeto context
+
+"""
+  Scenario: Create 2 time series with sample data using Dataframes and save in CSV files at T8S_WORKSPACE/data/csv directory
+    Given a start timestamp, a number of records and a time interval
+    When I create 2 time series using Dataframes with sample data
+    Then I have a time series with the `correct` number of rows and columns, schema and time interval
+    And I have a CSV file in T8S_WORKSPACE/data/csv correctelly formated
+    # Constraint: The first  Dataframe doesn't have nulls or invalid values, but the second does
+"""
 
 @given(u'a start timestamp, a number of records and a time interval')
 def create_dataframe(context):
@@ -79,7 +84,7 @@ def create_time_series(context):
     df1 = context.dataframe1
     context.ts1 = TimeSerie(df1, format='wide', features_qty=len(df1.columns))
     df2 = context.dataframe2
-    context.ts2 = TimeSerie(df2, format='wide', features_qty=len(df1.columns))
+    context.ts2 = TimeSerie(df2, format='wide', features_qty=len(df2.columns))
 
 @then(u'I have a time series with the `correct` number of rows and columns, schema and time interval')
 def check_schema(context):
@@ -135,7 +140,7 @@ def save_parquet(context):
     # Grava a série temporal ts2 em parquet
     # write_ts_to_parquet_file(context.ts2, context.PARQUET_PATH, 'ts_02.parquet')
 
-@then(u'I have a text representation for the first time serie like this:')
+@then(u'I have a text representation for the first time serie like this below')
 def check_text(context):
     logger.debug(f'check_text : context.text -> \n{str(context.text)}')
     logger.debug(f'\ncheck_text : context.ts1 -> \n{str(context.ts1)}')
@@ -148,3 +153,55 @@ def check_text(context):
     assert_line_by_line(context)
     logger.info('\ncheck_text passed !')
 
+# -----------------------------------------------------------------------------------------------
+
+"""
+  Scenario: Second, I create 1 time series at T8S_WORKSPACE/data directory using a literal sample data
+    Given a the table below as input
+      | datetime            | float       | float       |
+      | timestamp           | temperatura | velocidade  |
+      | 2022-01-01 00:00:00 | 3.0         | 30.0        |
+      | 2022-01-01 01:00:00 | 4.1         | 1124        |
+      | 2022-01-01 02:00:00 | 5.2         | 3276        |
+    When converted to a data frame using 1 row as column names and 1 column as index
+    And printed using data_frame_to_table function
+    Then I build a time series with the `correct` number of rows and columns
+"""
+
+use_step_matcher("parse")
+
+@given(u'a the table below as input')
+def the_table(context):
+    table: Table = context.table
+    context.input = table
+    table.headings
+    logger.info('the_table() called ...\n' + str(context.input) + ' ->' + str(type(context.input)))
+    logger.info(f'{table.headings}')
+    for row in table.rows:
+        logger.info(f'{row}')
+    logger.info(f'the_table() passed !')
+
+@when(u'converted to a data frame using {column_levels:d} row as column names and {index_levels:d} column as index')
+def to_dataframe(context, column_levels, index_levels):
+    parsed: pd.DataFrame = table_to_dataframe(context.input, column_levels=column_levels)
+    for idx, col in enumerate(parsed.columns):
+        logger.info(f'{idx}\t-> {col}, {type(parsed[col])}, {type(parsed[col][0])}')
+    context.parsed = parsed
+    logger.info(f'context.parsed =\n{context.parsed}\nType of context.parsed =\n{type(context.parsed)}')
+    logger.info(f'context.parsed.columns = {context.parsed.columns}')
+    logger.info(f'Test of to_dataframe passed !')
+
+@when(u'printed using data_frame_to_table function')
+def print_to_table(context):
+    table = dataframe_to_table(context.parsed)
+    assert isinstance(table, str)
+    logger.info(f'table =\n{table}\nType of table = {type(table)}')
+    logger.info(f'Test of print_to_table passed !')
+
+@then(u'I build a time series with the `correct` number of rows and columns')
+def table_to_ts(context):
+    df3: pd.DataFrame = context.parsed
+    logger.info(f'parsed =\n{df3}\nType of parsed = {type(df3)}')
+    context.ts3 = TimeSerie(df3, format='wide', features_qty=len(df3.columns))
+    logger.info(f'context.ts3 =\n{context.ts3}')
+    logger.info(f'Test of table_to_ts passed !')

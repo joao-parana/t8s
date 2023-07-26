@@ -4,6 +4,10 @@ from t8s.log_config import LogConfig
 from behave import given, when, then, model, step
 from behave.model import Feature, Scenario
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL, log
+from behave import use_step_matcher
+
+# use_step_matcher("re")
+use_step_matcher("parse")
 
 LogConfig().initialize_logger(DEBUG)
 logger = LogConfig().getLogger()

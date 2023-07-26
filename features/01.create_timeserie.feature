@@ -14,7 +14,7 @@ Value Statement:
     Then I have a time series with the `correct` number of rows and columns, schema and time interval
     And I have a CSV file in T8S_WORKSPACE/data/csv correctelly formated
     And I have a Parquet file in T8S_WORKSPACE/data/parquet correctelly formated with metadata annotations
-    And I have a text representation for the first time serie like this:
+    And I have a text representation for the first time serie like this below
     """
     TimeSerie(format=wide, features=3, df=
                 timestamp  temperatura  velocidade
@@ -25,3 +25,14 @@ Value Statement:
     types: [<class 'pandas._libs.tslibs.timestamps.Timestamp'>, <class 'numpy.float32'>, <class 'numpy.float32'>]
     """
     # Constraint: The first  Dataframe doesn't have nulls or invalid values, but the second does
+
+  Scenario: Second, I create 1 time series at T8S_WORKSPACE/data directory using a literal sample data
+    Given a the table below as input
+      | datetime            | float       | float       |
+      | timestamp           | temperatura | velocidade  |
+      | 2022-01-01 00:00:00 | 3.0         | 30.0        |
+      | 2022-01-01 01:00:00 | 4.1         | 1124        |
+      | 2022-01-01 02:00:00 | 5.2         | 3276        |
+    When converted to a data frame using 1 row as column names and 1 column as index
+    And printed using data_frame_to_table function
+    Then I build a time series with the `correct` number of rows and columns
