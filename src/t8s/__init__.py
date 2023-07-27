@@ -24,7 +24,6 @@ def get_sample_df(number_of_records: int, first_ts: datetime, time_interval: int
     # TODO: Implementar o uso do parâmetro number_of_records que atualmente é sempre 4
     # Atualmente ignora-se o parâmetro time_interval
     # TODO: Implementar o uso do parâmetro time_interval que atualmente é sempre 1 (hora)
-    print('first_ts', first_ts)
     data = {
         'timestamp': [
             first_ts,

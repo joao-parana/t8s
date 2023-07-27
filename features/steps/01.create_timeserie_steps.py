@@ -31,11 +31,6 @@ Value Statement:
 
 @given(u'that I have a T8S_WORKSPACE_DIR and a bunch of CSV and Parquet files to analyze')
 def setup(context):
-    def clean_data_dir():
-        logger.info(f'clean_data_dir() called ...')
-        pass
-
-    clean_data_dir()
     logger.info(f'-------------------------------------------------')
     logger.info(f'Background @given: T8S_WORKSPACE_DIR = {context.T8S_WORKSPACE_DIR}')
     logger.info(f'Background@given:  CSV_PATH = {context.CSV_PATH}')
@@ -65,13 +60,19 @@ def create_dataframe(context):
     context.last_ts = last_ts
     # altera a série temporal incluindo NaN e inválidos
     dataframe2, last_ts = get_sample_df(number_of_records, last_ts + pd.Timedelta(hours=1), time_interval)
-    # print('Original:', dataframe2)
+    dataframe2_str = ''
+    logger.debug(f'Original: {dataframe2_str}')
     # altera a série temporal incluindo NaN e inválidos
     dataframe2.iloc[0, 1] = 'Missing'
     dataframe2.iloc[1, 1] = np.nan
     dataframe2.iloc[2, 2] = np.nan # ATENÇÃO: ao atribuir NaN, o Pandas converte o tipo da coluna de int32 para float64
     dataframe2.iloc[3, 1] = 'Bad'
     context.dataframe2 = dataframe2
+    try:
+        dataframe2_str = str(dataframe2)
+    except Exception as e:
+        logger.error(f'@given: -> dataframe2_str = str(dataframe2) -> {e}')
+
     context.last_ts = last_ts
     logger.info(f'@given: -> CSV_PATH = {context.CSV_PATH}')
 
@@ -128,11 +129,6 @@ def save_parquet(context):
         path_ts = Path(parquet_file_path_str)
         # Devido a problemas de 'circular import' tivemos que usar a classe Util
         Util.to_parquet(ts, path_ts)
-        # print(f'Grava a série temporal (formato {ts.format}) em um arquivo parquet {path_ts}')
-        # context = TSWriter(WriteParquetFile())
-        # print("Client: Strategy was seted to write Parquet file.")
-        # context.write(Path(path_ts), ts)
-        # print(f'\nArquivo {str(path_ts)} gerado à partir da TimeSerie fornecida')
 
     # Grava a série temporal ts1 em parquet
     write_ts_to_parquet_file(context.ts1, context.PARQUET_PATH, 'ts_01.parquet')

@@ -159,8 +159,13 @@ class TimeSerie(ITimeSerie):
 
     def to_long(self):
         # Converte a série temporal para o formato Long
-        # Implementação aqui
-        raise NotImplementedError('Not implemented for long format')
+        # Considerando que na série temporal a ser convertida a primeira coluna é o
+        # timestamp e as outras são as features. A série transformada "inplace" terá
+        # 3 colunas: `timestamp`, `ds` e `value`, com `ds` sendo o nome ou id do `datasource`.
+        # Em algumas situações `ds` pode ser o id do par `datasource/indicator`.
+        first_column_name = self.df.columns[0]
+        df_long_format = pd.melt(self.df, id_vars=[first_column_name], var_name='ds', value_name='value')
+        print(df_long_format)
 
     def to_wide(self):
         # Converte a série temporal para o formato Wide

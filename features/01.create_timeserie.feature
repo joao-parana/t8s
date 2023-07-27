@@ -2,7 +2,7 @@ Feature: Create a time series set using Dataframe, CSV and Parquet
 
 Value Statement:
   As a data analyst
-  I want the hability to create a timeseries set using Dataframe, CSV and Parquet
+  I want the ability to create a timeseries set using Dataframe, CSV and Parquet
   So that I can start studying the data right away and propose solutions for the business.
 
   Background:
