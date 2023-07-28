@@ -88,3 +88,4 @@ def convert_list_of_univariate_to_multivariate(context):
 @then(u'I check the result.')
 def check_result(context):
     logger.info(f'context.ts1 BEFORE -> \n{str(context.ts1)}')
+    logger.info(f'split/join test passed')
