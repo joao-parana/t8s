@@ -12,9 +12,9 @@ class Util:
     def to_parquet(ts: TimeSerie, path_ts: Path):
         # def write_ts_to_parquet_file(ts, parquet_path, filename: str):
         logger.debug(f'Grava a série temporal (formato {ts.format}) em um arquivo parquet {path_ts}')
-        context = TSWriter(WriteParquetFile())
+        ctx = TSWriter(WriteParquetFile())
         logger.debug("Client: Strategy was seted to write Parquet file.")
-        context.write(Path(path_ts), ts)
+        ctx.write(Path(path_ts), ts)
         logger.debug(f'\nArquivo {str(path_ts)} gerado à partir da TimeSerie fornecida')
 
     @staticmethod

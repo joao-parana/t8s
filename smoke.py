@@ -42,9 +42,9 @@ if __name__ == "__main__":
 
     # Grava a série temporal em parquet
     logger.debug(f'Grava a série temporal (formato {ts.format}) em um arquivo parquet {path}')
-    context = TSWriter(WriteParquetFile())
+    ctx = TSWriter(WriteParquetFile())
     logger.debug("Client: Strategy was seted to write Parquet file.")
-    context.write(Path(path_str), ts)
+    ctx.write(Path(path_str), ts)
     logger.debug(f'\nArquivo {str(path)} gerado à partir da TimeSerie fornecida')
 
     # --------------------------------------------------------------------------------
@@ -63,14 +63,14 @@ if __name__ == "__main__":
     # to make the right choice.
     assert isinstance(path, Path), "path must be a Path object"
     if (str(path)).endswith('.parquet'):
-        context = TSBuilder(ReadParquetFile())
+        ctx = TSBuilder(ReadParquetFile())
         logger.debug("Client: ReadStrategy is set to read Parquet file.")
-        ts = context.build_from_file(Path(path_str))
+        ts = ctx.build_from_file(Path(path_str))
     else:
         assert str(path).endswith('.csv'), "If path is not a Parquet file the path must be a CSV file"
         logger.debug("Client: ReadStrategy is set to read CSV file.")
-        context = TSBuilder(ReadCsvFile())
-        ts = context.build_from_file(Path(path_str))
+        ctx = TSBuilder(ReadCsvFile())
+        ts = ctx.build_from_file(Path(path_str))
 
     assert int(ts.features) == 3
     assert ts.format == 'wide'

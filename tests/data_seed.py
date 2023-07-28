@@ -31,9 +31,9 @@ if __name__ == "__main__":
     path_str: str = 'data/parquet/ts_01.parquet'
     path = Path(path_str)
     logger.debug(f'Grava a série temporal (formato {ts1.format}) em um arquivo parquet {path}')
-    context = TSWriter(WriteParquetFile())
+    ctx = TSWriter(WriteParquetFile())
     logger.debug("Client: Strategy was seted to write Parquet file.")
-    context.write(Path(path_str), ts1)
+    ctx.write(Path(path_str), ts1)
     # ---------------------------------------------------------------------------------------------
     # Outro caso de uso
     number_of_records = 4
@@ -62,6 +62,6 @@ if __name__ == "__main__":
     path_str: str = 'data/parquet/ts_02.parquet'
     path = Path(path_str)
     logger.debug(f'Grava a série temporal (formato {ts2.format}) em um arquivo parquet {path}')
-    context = TSWriter(WriteParquetFile())
+    ctx = TSWriter(WriteParquetFile())
     logger.debug("Client: Strategy was seted to write Parquet file.")
-    context.write(Path(path_str), ts2)
+    ctx.write(Path(path_str), ts2)

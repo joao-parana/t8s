@@ -10,9 +10,9 @@ def test_build_from_file():
     path_str: str = 'data/parquet/ts_01.parquet'
     path = Path(path_str)
     print('path: ', path)
-    context = TSBuilder(ReadParquetFile())
+    ctx = TSBuilder(ReadParquetFile())
     print("Client: Strategy is set to read Parquet file.")
-    ts: TimeSerie = context.build_from_file(Path(path_str))
+    ts: TimeSerie = ctx.build_from_file(Path(path_str))
     assert int(ts.features) == 3
     assert ts.format == 'wide'
     assert ts.df.__len__() == 4

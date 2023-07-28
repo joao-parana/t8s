@@ -77,9 +77,9 @@ def test_to_parquet():
     path_str: str = 'data/parquet/ts_01.parquet'
     path = Path(path_str)
     logger.debug(f'Grava a série temporal (formato {ts.format}) em um arquivo parquet {path}')
-    context = TSWriter(WriteParquetFile())
+    ctx = TSWriter(WriteParquetFile())
     logger.debug("Client: Strategy was seted to write Parquet file.")
-    context.write(Path(path_str), ts)
+    ctx.write(Path(path_str), ts)
     logger.debug(f'\nArquivo {str(path)} gerado à partir da TimeSerie fornecida')
     check_schema(ts, path, [datetime, np.float32, np.int32])
     logger.info('FIM')

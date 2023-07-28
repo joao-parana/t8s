@@ -165,28 +165,41 @@ class TimeSerie(ITimeSerie):
         # Em algumas situações `ds` pode ser o id do par `datasource/indicator`.
         first_column_name = self.df.columns[0]
         df_long_format = pd.melt(self.df, id_vars=[first_column_name], var_name='ds', value_name='value')
+        # Ordena o DataFrame pela coluna 'timestamp' em ordem crescente
+        df_long_format.sort_values(by=['timestamp', 'ds'], inplace=True)
         print(df_long_format)
+        self.df = df_long_format
+        self.format = 'long'
+        self.columns = ['timestamp', 'ds', 'value']
 
     def to_wide(self):
         # Converte a série temporal para o formato Wide
         # Implementação aqui
         raise NotImplementedError('Not implemented for long format')
 
-    def is_univariate(self):
+    def is_univariate(self) -> bool:
         # Verifica se a série temporal é univariada
         if self.format == 'long':
-            raise NotImplementedError('Not implemented for long format')
+            # Obtém os valores distintos da coluna 'ds'
+            distinct_ds_values = self.df['ds'].unique()
+            # Se a quantidade de valores distintos for 1, então a série
+            # temporal é univariada
+            return distinct_ds_values.size == 1
         return self.df.columns.size == 2
 
     def is_multivariate(self):
         # Verifica se a série temporal é multivariada
         if self.format == 'long':
-            raise NotImplementedError('Not implemented for long format')
+            # Obtém os valores distintos da coluna 'ds'
+            distinct_ds_values = self.df['ds'].unique()
+            # Se a quantidade de valores distintos for maior que 1, então a série
+            # temporal é multivariada
+            return distinct_ds_values.size > 1
         return self.df.columns.size > 2
 
     def split(self) -> list[TimeSerie]:  # Alternativa: list['TimeSerie']
         # TODO: garantir que a primeira coluna seja o indice no Dataframe quando o formato for long ou wide
-        # TODO: garantir que a primeira coluna seja do tipo Timesamp (datetime) quando o formato for long ou wide
+        # TODO: garantir que a primeira coluna seja do tipo Timestamp (datetime) quando o formato for long ou wide
         # Cria várias séries temporais univariadas à partir de uma série temporal multivariada
         result = []
         if self.format == 'long':
@@ -208,6 +221,7 @@ class TimeSerie(ITimeSerie):
             raise Exception('Formato de série temporal não suportado')
 
         msg = 'O método split deve retornar uma lista de objetos TimeSerie'
+        assert isinstance(result, list), msg
         for ts in result:
             assert isinstance(ts, TimeSerie), msg
 
