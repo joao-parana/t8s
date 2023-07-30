@@ -8,7 +8,7 @@ import os
 import gc
 import yaml
 from abc import ABC, abstractmethod
-from typing import Any, Optional, TypeVar
+from typing import Any, Optional, TypeVar, TypeAlias
 
 import numpy as np
 import pandas as pd
@@ -22,6 +22,7 @@ logger = LogConfig().getLogger()
 import re
 from enum import Enum
 from t8s import get_numeric_regex
+from t8s import PathStr
 
 NULL_PATH: Path = Path('/NullPathObject')
 
@@ -107,7 +108,7 @@ class IO:
         return (types, type_map)
 
     @staticmethod
-    def get_column_names_and_types_from_csv_file(csv_file: str) -> tuple[list[str], list[type], dict[str, type]]:
+    def get_column_names_and_types_from_csv_file(csv_file: PathStr) -> tuple[list[str], list[type], dict[str, type]]:
         # Define os tipos de dados das colunas assumindo a primeira como pd.Timestamp e a ultima como target
         # e todas as outras como features numéricas. Outros caso de uso não são tratados no momento.
         # Verifica se é arquivo CSV no formato texto, sem compactação e com a extensão .csv
@@ -146,7 +147,7 @@ class IO:
         return column_names, column_type_list, column_type_dict
 
     @staticmethod
-    def check_data_types_in_csv_file(csv_file: str) -> tuple[list[type], dict[str, type]]:
+    def check_data_types_in_csv_file(csv_file: PathStr) -> tuple[list[type], dict[str, type]]:
         # TODO: No caso em que a primeira linha do CSV não tenha a definição dos nomes das colunas
         #       podemos usar o parâmetro header=None para que o Pandas crie nomes para as colunas.
         # -----------------------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any, Optional # Python 3.8+
 
 
 class Handler(ABC):
@@ -26,7 +26,7 @@ class AbstractHandler(Handler):
     class.
     """
 
-    _next_handler: Handler
+    _next_handler: Optional[Handler] = None
 
     def set_next(self, handler: Handler) -> Handler:
         self._next_handler = handler

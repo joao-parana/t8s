@@ -7,12 +7,20 @@ from .__about__ import __version__
 #
 # class ITimeSerie(ABC):
 #    pass
+import sys
+
+if sys.version_info < (3, 10):
+    raise SystemExit("Sorry, Python < 3.10 is not supported")
 
 import re
 from enum import Enum
+from typing import TypeAlias
+
 from datetime import datetime
 import numpy as np
 import pandas as pd
+
+PathStr: TypeAlias = str
 
 def get_numeric_regex():
     # Definindo a expressão regular para identificar números de ponto flutuante
