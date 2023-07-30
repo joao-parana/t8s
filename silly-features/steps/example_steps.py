@@ -46,7 +46,7 @@ def teste(context):
 
 @given(u'a workspace {workspace}')
 def set_workspace(context, workspace):
-    workspace_dir = os.environ.get('WORKSPACE_DIR', '/Volumes/dev/t8s')
+    workspace_dir = os.environ.get('T8S_WORKSPACE_DIR', '/Volumes/dev/t8s')
     logger.info(f'STEP: Given a workspace ${workspace} ({workspace_dir})')
     context_workspace = os.environ.get(workspace)
     logger.info(f'STEP: Given a workspace -> context.workspace {context_workspace}')
