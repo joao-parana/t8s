@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
 from t8s.log_config import LogConfig
@@ -17,6 +18,7 @@ use_step_matcher("parse")
 LogConfig().initialize_logger(INFO)
 logger = LogConfig().getLogger()
 print(f'\n\n• The script "environment.py" was loaded ...\n')
+print(f'\n• The python version used is "{sys.version_info}"\n\n')
 
 def list_files(prefix: str, context):
     l: list = Util.list_all_files(context.PARQUET_PATH)
