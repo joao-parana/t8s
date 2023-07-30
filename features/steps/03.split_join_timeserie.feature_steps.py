@@ -52,8 +52,8 @@ def background(context):
 """
   Scenario: Conversion of Timeseries types ['univariate', 'multivariate'] for use in different situations
     Given that I create a Timeseries using the selected parquet file in the T8S_WORKSPACE/data/parquet directory
-    When I convert Timeseries from long format to wide format
-    Then I convert the Timeseries from multivariate to a list of univariate Timeseries
+    When I convert Timeseries from long format to wide format and check the convertion
+    Then I can convert the Timeseries from multivariate to a list of univariate Timeseries
     And I convert the list of univariate Timeseries into a single multivariate Timeseries
     And I check the result.
     # Constraint: The Timeseries has no invalid values
@@ -72,12 +72,16 @@ def create_time_serie(context):
     assert ts1.format == 'long'
     assert ts1.df.__len__() == 8
     context.ts1 = ts1
+    context.list_files(f'create_time_serie() \n', context)
 
-@when(u'I convert Timeseries from long format to wide format')
+@when(u'I convert Timeseries from long format to wide format and check the convertion')
 def convert_time_serie_from_long_to_wide_format(context):
-    logger.info(f'context.ts1 BEFORE -> \n{str(context.ts1)}')
+    logger.info(f'context.ts1 BEFORE -> \n{str(context.ts1.format)}')
+    ts1: TimeSerie = context.ts1
+    ts1.to_wide()
+    logger.info(f'context.ts1 AFTER  -> \n{str(context.ts1.format)}\n{str(context.ts1.df.head())}')
 
-@then(u'I convert the Timeseries from multivariate to a list of univariate Timeseries')
+@then(u'I can convert the Timeseries from multivariate to a list of univariate Timeseries')
 def convert_time_serie_from_multivariate_to_list_of_univariate(context):
     logger.info(f'context.ts1 BEFORE -> \n{str(context.ts1)}')
 

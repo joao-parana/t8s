@@ -25,9 +25,9 @@ class LogConfigMeta(type):
 class LogConfig(metaclass=LogConfigMeta):
     def __init__(self) -> None:
         self.logger = None
-        self.initialize_logger(level=logging.DEBUG)
+        self.initialize_logger(level=logging.INFO)
 
-    def initialize_logger(self, level=logging.DEBUG, log_file: str = 'logs/timeseries.log'):
+    def initialize_logger(self, level=logging.INFO, log_file: str = 'logs/timeseries.log'):
         my_global_logger = logging.getLogger(__name__)
         my_global_logger.setLevel(level)
         # logger_handler = RotatingFileHandler('timeseries.log', maxBytes=1_000_000, backupCount=10)

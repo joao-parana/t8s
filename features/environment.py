@@ -14,10 +14,9 @@ from t8s import get_sample_df
 # use_step_matcher("re")
 use_step_matcher("parse")
 
-LogConfig().initialize_logger(DEBUG)
+LogConfig().initialize_logger(INFO)
 logger = LogConfig().getLogger()
 print(f'\n\n• The script "environment.py" was loaded ...\n')
-
 
 def list_files(prefix: str, context):
     l: list = Util.list_all_files(context.PARQUET_PATH)
@@ -77,6 +76,7 @@ def clean_data_dir(CSV_PATH, PARQUET_PATH):
                 print(os.path.join(root, dir))
     return 'data directory empty'
 
+# HOOK
 def before_feature(context, feature: Feature):
     # Inicializa o status no contexto
     context.status = context.status if hasattr(context, 'status') else 'not defined'
@@ -96,6 +96,7 @@ def before_feature(context, feature: Feature):
 
     logger.info(f'-------------------------------------------------')
 
+# HOOK
 def before_scenario(context, scenario: Scenario):
     logger.info(f'-------------------------------------------------')
     logger.info(f'before scenario: {scenario.name}')

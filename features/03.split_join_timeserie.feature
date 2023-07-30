@@ -10,8 +10,8 @@ Value Statement:
 
   Scenario: Conversion of Timeseries types ['univariate', 'multivariate'] for use in different situations
     Given that I create a Timeseries using the selected parquet file in the T8S_WORKSPACE/data/parquet directory
-    When I convert Timeseries from long format to wide format
-    Then I convert the Timeseries from multivariate to a list of univariate Timeseries
+    When I convert Timeseries from long format to wide format and check the convertion
+    Then I can convert the Timeseries from multivariate to a list of univariate Timeseries
     And I convert the list of univariate Timeseries into a single multivariate Timeseries
     And I check the result.
     # Constraint: The Timeseries has no invalid values

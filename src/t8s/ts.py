@@ -163,19 +163,24 @@ class TimeSerie(ITimeSerie):
         # timestamp e as outras são as features. A série transformada "inplace" terá
         # 3 colunas: `timestamp`, `ds` e `value`, com `ds` sendo o nome ou id do `datasource`.
         # Em algumas situações `ds` pode ser o id do par `datasource/indicator`.
+        assert self.format == 'wide', 'A série temporal deve estar no formato wide'
         first_column_name = self.df.columns[0]
         df_long_format = pd.melt(self.df, id_vars=[first_column_name], var_name='ds', value_name='value')
         # Ordena o DataFrame pela coluna 'timestamp' em ordem crescente
         df_long_format.sort_values(by=['timestamp', 'ds'], inplace=True)
-        print(df_long_format)
+        logger.debug(df_long_format)
         self.df = df_long_format
         self.format = 'long'
-        self.columns = ['timestamp', 'ds', 'value']
+        logger.debug(self)
 
     def to_wide(self):
         # Converte a série temporal para o formato Wide
-        # Implementação aqui
-        raise NotImplementedError('Not implemented for long format')
+        # Converte o DataFrame do formato long para o formato wide
+        df_wide_format = self.df.pivot(index='timestamp', columns='ds', values='value')
+        logger.debug(f'Conversão para formato wide: \n{df_wide_format}')
+        self.df = df_wide_format
+        self.format = 'wide'
+        logger.debug('\n' + str(self))
 
     def is_univariate(self) -> bool:
         # Verifica se a série temporal é univariada

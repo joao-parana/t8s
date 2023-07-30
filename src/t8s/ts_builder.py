@@ -107,7 +107,7 @@ class TSBuilder:
 
 class ReadParquetFile(ReadStrategy):
     def do_read(self, data: Path) -> Optional['TimeSerie']:
-        logger.info('Using ReadParquetFile strategy to read data from: ' + str(data))
+        logger.debug('Using ReadParquetFile strategy to read data from: ' + str(data))
         assert isinstance(data, Path), "path must be a Path object"
         assert (str(data)).endswith('.parquet'), "path must be a Path object"
         # Lê os metadados do arquivo Parquet
@@ -147,7 +147,7 @@ class ReadParquetFile(ReadStrategy):
         # Em vez de criar float32 para o physical_type FLOAT do Parquet, ele cria float64.
         # df = pd.read_parquet(data)
         df = parquet_file.read().to_pandas()
-        print(df.info())
+        logger.debug(df.info())
 
         # TODO: garantir que a primeira coluna seja um Timestamp quando o formato for long ou wide
         logger.debug('\ndf:\n' + str(df))
