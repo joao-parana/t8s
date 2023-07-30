@@ -30,6 +30,12 @@ pyright --level warning .
 
 ## Testing
 
+```bash
+# Para configurar o ambiente de testes, define a variável de ambiente
+# T8S_WORKSPACE_DIR, por exemplo:
+export T8S_WORKSPACE_DIR=/Volumes/dev/t8s
+```
+
 ![BDD](docs/bdd.png)
 
 Veja também [BDD](docs/behave.md)
@@ -44,7 +50,7 @@ hatch run python3 main.py
 ./test-all.sh
 # Usando BDD com behave (https://behave.readthedocs.io/en/latest/)
 rm logs/timeseries.log
-python3 -m behave --logging-level INFO --no-capture --no-capture-stderr --no-skipped features
+hatch run python -m behave --logging-level INFO --no-capture --no-capture-stderr --no-skipped features
 cat logs/timeseries.log
 ```
 
