@@ -9,7 +9,7 @@ from t8s.util import Util
 from t8s.io import IO
 from t8s.ts import TimeSerie
 from t8s.ts_writer import TSWriter, WriteParquetFile
-from behave import given, when, then, use_step_matcher, step
+from behave import given, when, then, use_step_matcher, step # type: ignore
 from behave.model import Table
 from behave_pandas import table_to_dataframe, dataframe_to_table
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL

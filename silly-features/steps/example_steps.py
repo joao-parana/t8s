@@ -3,7 +3,7 @@
 
 import os
 from t8s.log_config import LogConfig
-from behave import given, when, then, model, step
+from behave import given, when, then, model, step # type: ignore
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
 
 LogConfig().initialize_logger(DEBUG)

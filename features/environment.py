@@ -3,10 +3,10 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from t8s.log_config import LogConfig
-from behave import given, when, then, model, step
-from behave.model import Feature, Scenario
+from behave import given, when, then, model, step # type: ignore
+from behave.model import Feature, Scenario # type: ignore
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL, log
-from behave import use_step_matcher
+from behave import use_step_matcher # type: ignore
 
 from t8s.util import Util
 from t8s.ts import TimeSerie

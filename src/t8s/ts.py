@@ -168,19 +168,19 @@ class TimeSerie(ITimeSerie):
         df_long_format = pd.melt(self.df, id_vars=[first_column_name], var_name='ds', value_name='value')
         # Ordena o DataFrame pela coluna 'timestamp' em ordem crescente
         df_long_format.sort_values(by=['timestamp', 'ds'], inplace=True)
-        logger.debug(df_long_format)
+        # logger.debug(df_long_format)
         self.df = df_long_format
         self.format = 'long'
-        logger.debug(self)
+        # logger.debug(self)
 
     def to_wide(self):
         # Converte a série temporal para o formato Wide
         # Converte o DataFrame do formato long para o formato wide
         df_wide_format = self.df.pivot(index='timestamp', columns='ds', values='value')
-        logger.debug(f'Conversão para formato wide: \n{df_wide_format}')
+        # logger.debug(f'Conversão para formato wide: \n{df_wide_format}')
         self.df = df_wide_format
         self.format = 'wide'
-        logger.debug('\n' + str(self))
+        # logger.debug('\n' + str(self))
 
     def is_univariate(self) -> bool:
         # Verifica se a série temporal é univariada
