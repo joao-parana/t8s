@@ -60,7 +60,7 @@ def background(context):
 """
 
 @given(u'that I create a Timeseries using the selected parquet file in the T8S_WORKSPACE/data/parquet directory')
-def create_time_serie(context):
+def create_time_serie_from_parquet_file(context):
     file_name_of_time_series_in_long_format = 'ts_long_01.parquet'
     path_str: str = str(context.PARQUET_PATH) + '/' + file_name_of_time_series_in_long_format
     path = Path(path_str)
@@ -71,7 +71,7 @@ def create_time_serie(context):
     assert ts1.format == 'long'
     assert len(ts1.df) == 8
     context.ts1 = ts1
-    context.list_files(f'create_time_serie() \n', context)
+    context.list_files(f'create_time_serie_from_parquet_file() \n', context)
 
 @when(u'I convert Timeseries from long format to wide format and check the convertion')
 def convert_time_serie_from_long_to_wide_format(context):

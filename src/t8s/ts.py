@@ -67,7 +67,7 @@ class ITimeSeriesProcessor(ABC):
 """Rastreia a proveniência dos ativos de informação, Série Temporal neste caso"""
 
 
-class IProvenancable(ABC):
+class IProvenanceable(ABC):
     def __init__(self):
         self.format: str
         self.features: str
@@ -106,7 +106,7 @@ class IProvenancable(ABC):
         pass
 
 
-class ITimeSerie(ITimeSeriesProcessor, IProvenancable):
+class ITimeSerie(ITimeSeriesProcessor, IProvenanceable):
     """
     Interface que estende as outras interfaces. ë apenas uma Marker Interface
     """
@@ -147,6 +147,7 @@ class TimeSerie(ITimeSerie):
         first_column_type = self.df[self.df.columns[0]].dtype
         if first_column_type != 'datetime64[ns]':
             print(self.df.info())
+            logger.error(self.df.info())
             raise Exception('A primeira coluna deve ser um Timestamp (datetime)' +
             ' experado ' + 'datetime64[ns]' + ' recebido ' + str(first_column_type))
         logger.debug('Objeto TimeSerie construido com sucesso')
@@ -206,6 +207,7 @@ class TimeSerie(ITimeSerie):
         # TODO: garantir que a primeira coluna seja o indice no Dataframe quando o formato for long ou wide
         # TODO: garantir que a primeira coluna seja do tipo Timestamp (datetime) quando o formato for long ou wide
         # Cria várias séries temporais univariadas à partir de uma série temporal multivariada
+        # As séries temporais univariadas estão sempre no formato wide
         result = []
         if self.format == 'long':
             # TODO: Implementar para o caso de formato longo.
@@ -217,7 +219,7 @@ class TimeSerie(ITimeSerie):
                 if idx == 0:
                     continue
                 my_df = self.df[[timestamp_col, col]]
-                # TODO: criar um novo objeto TimeSerie
+                # Criaando um novo objeto TimeSerie
                 my_ts = TimeSerie(data=my_df, format='wide', features_qty=2)
                 logger.debug('---------------------------------------------------')
                 logger.debug(f'univariate {idx}' + '\n ' + str(my_df))
@@ -281,7 +283,7 @@ class TimeSerie(ITimeSerie):
         logger.debug(multivariate_ts)
         return multivariate_ts
 
-    ### ----------------------------- Métodos de IProvenancable ----------------------------------
+    ### ----------------------------- Métodos de IProvenanceable ----------------------------------
 
     def add_provenance(self, transformation: str, parameters: dict):
         # Este método adiciona informações de proveniência ao objeto TimeSerie para

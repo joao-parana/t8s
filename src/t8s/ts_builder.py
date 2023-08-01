@@ -45,7 +45,7 @@ class TSBuilder:
         Usually, the Context accepts a strategy through the constructor, but
         also provides a setter to change it at runtime.
         """
-        logger.info('TSBuilder constructor received strategy: %s', strategy)
+        # logger.info('TSBuilder constructor received strategy: %s', strategy)
         self._strategy = strategy
 
     @property
@@ -76,9 +76,9 @@ class TSBuilder:
 
         # ...
 
-        logger.info(f"Context: build_from_file {path}")
+        # logger.info(f"Context: build_from_file {path}")
         result = self._strategy.do_read(path)
-        logger.info('result type from build_from_file() is: ' + str(type(result)))
+        # logger.info('result type from build_from_file() is: ' + str(type(result)))
 
         # ...
         return result
@@ -95,7 +95,7 @@ class TSBuilder:
 
         print("Context: build_from_socket")
         result = self._strategy.do_read(None)
-        logger.info('result type from build_from_socket() is: ' + str(type(result)))
+        # logger.info('result type from build_from_socket() is: ' + str(type(result)))
 
         # ...
         return result
@@ -120,8 +120,8 @@ class ReadParquetFile(ReadStrategy):
         # Imprime o valor do metadado 'format'
         format = metadata.metadata[b'format'].decode()
         features = metadata.metadata[b'features'].decode()
-        logger.info('format: ' + format + ' type(format) ' + str(type(format)))
-        logger.info('features: ' + str(features) + ' type(features): ' + str(type(features)))
+        # logger.info('format: ' + format + ' type(format) ' + str(type(format)))
+        # logger.info('features: ' + str(features) + ' type(features): ' + str(type(features)))
         assert isinstance(format, str), "format metadada must be a string"
         assert isinstance(features, str), "features metadada must be a string"
         features_qty = int(features)
@@ -159,5 +159,5 @@ class ReadParquetFile(ReadStrategy):
 
 class ReadCsvFile(ReadStrategy):
     def do_read(self, data: list) -> Optional['TimeSerie']:
-        logger.info('Using ReadCsvFile strategy')
+        # logger.info('Using ReadCsvFile strategy')
         return TSBuilder.empty()
