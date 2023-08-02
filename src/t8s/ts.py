@@ -7,11 +7,12 @@ import types
 import yaml
 from abc import ABC, abstractmethod
 from typing import Any, Optional, Type, TypeVar
-
+import numpy as np
 import pandas as pd
 import pyarrow as pa         # type: ignore
 import pyarrow.parquet as pq # type: ignore
-
+from sklearn.base import TransformerMixin   # type: ignore
+from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler # type: ignore
 from t8s.log_config import LogConfig
 
 # TODO: Esclarecer duvida coceitual sobre o conceito de feture em séries temporais multivariadas
@@ -56,6 +57,10 @@ class ITimeSeriesProcessor(ABC):
         # Alternativas para anotar o tipo de retorno:
         # list[TS], list['TimeSerie'] ou list[Optional['TimeSerie']]
         # Cria várias séries temporais univariadas à partir de uma série temporal multivariada
+        pass
+
+    @abstractmethod
+    def normalize(self, scaler: TransformerMixin, columns: list[str], inplace: bool = False) -> TimeSerie:
         pass
 
     # @staticmethod
@@ -121,6 +126,9 @@ class TimeSerie(ITimeSerie):
         self.format: str = format
         self.features: str = str(features_qty)
         self.df = pd.DataFrame()
+        # scaler indica se dados já foram normalizados e qual foi a classe
+        # da implementação do scaler usado na normalização.
+        self.scaler: TransformerMixin | None = None
         if len(args) > 0:
             for idx, arg in enumerate(args):
                 if idx == 0 and isinstance(arg, pd.DataFrame):
@@ -233,6 +241,64 @@ class TimeSerie(ITimeSerie):
             assert isinstance(ts, TimeSerie), msg
 
         return result
+
+    def get_numeric_column_names(self) -> list:
+        ret:list = []
+        for idx, c in enumerate(self.df.columns):
+            if (self.df[c].dtype == float or self.df[c].dtype == int or
+            self.df[c].dtype == np.float64 or self.df[c].dtype == np.int64 or
+            self.df[c].dtype == np.float32 or self.df[c].dtype == np.int32):
+                ret.append(c)
+        ret.sort() # sort é operação mutável !
+        return ret
+
+
+    def normalize(self, scaler: TransformerMixin, numeric_columns: list[str] | None = None, inplace: bool = False) -> TimeSerie:
+        column_list: list[str] = []
+        if numeric_columns is None:
+            column_list = self.get_numeric_column_names()
+        else:
+            column_list = numeric_columns
+        logger.info(f'columns -> {self.df.columns} -> column_list: {column_list}')
+        df_norm = self.df.copy(deep=True)
+
+        df_norm[numeric_columns] = pd.DataFrame(scaler.fit_transform(self.df[numeric_columns]))
+        # Restaura a coluna timestamp
+        timestamp_col = self.df.columns[0]
+        df_norm[timestamp_col] = self.df[timestamp_col]
+        # Trata o parâmetro inplace para o caso de imutabilidade.
+        if inplace:
+            self.df = df_norm
+            self.scaler = scaler
+            logger.info(f'Time Serie normalized -> scaler type: {type(self.scaler)}')
+            return self
+        else:
+            ret = TimeSerie(data=df_norm, format=self.format, features_qty=int(self.features))
+            ret.scaler = scaler
+            scaler_name = str(type(scaler)).split('.')[-1]
+            logger.info(f'Time Serie normalized -> scaler type: {type(scaler)} -> {scaler_name}')
+            return ret
+
+    def denormalize(self, inplace: bool = False) -> TimeSerie | None:
+        def denormalize_row():
+            if isinstance(self.scaler, MinMaxScaler):
+                return lambda x: (x + 1) / 2 * (self.scaler.data_max_ - self.scaler.data_min_) + self.scaler.data_min_ # type: ignore
+            elif isinstance(self.scaler, RobustScaler):
+                return lambda x: (x * self.scaler.scale_) + self.scaler.center_ # type: ignore
+            else:
+                raise ValueError('Unsupported scaler')
+
+        # Reverte a normalização de um conjunto de valores. Observe que podem haver diferenças de arredondamento
+        # entre os valores originais e os valores revertidos devido a questões intrinsecas do formato float.
+        # Considere epsilon = 1e-6 para valores float32 e epsilon = 1e-8 para valores float64
+        numeric_columns = self.get_numeric_column_names()
+        for idx, row in self.df.iterrows():
+            row_numeric_values: pd.Series = row[numeric_columns]
+            row_denormalized = denormalize_row()(row_numeric_values)
+            print('-----------------------------------------------------')
+            print(f'idx = {idx}, row =\n{row}')
+            print(f'row[numeric_columns] =\n{row[numeric_columns]}')
+            print(f'denormalize(scaler)(row[numeric_columns]) = {row_denormalized}')
 
     @staticmethod
     def join(list_of_ts: list['TimeSerie']) -> 'TimeSerie':

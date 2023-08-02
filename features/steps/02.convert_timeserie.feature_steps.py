@@ -14,7 +14,6 @@ from behave.model import Table
 from behave_pandas import table_to_dataframe, dataframe_to_table
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
 
-LogConfig().initialize_logger(DEBUG)
 logger = LogConfig().getLogger()
 
 """

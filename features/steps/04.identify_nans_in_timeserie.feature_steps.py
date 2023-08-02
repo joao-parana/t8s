@@ -16,7 +16,6 @@ from behave.model import Table # type: ignore
 from behave_pandas import table_to_dataframe, dataframe_to_table # type: ignore
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
 
-LogConfig().initialize_logger(DEBUG)
 logger = LogConfig().getLogger()
 
 """
@@ -35,15 +34,20 @@ Feature: Identify NaN values in multivariate and univariate Timeseries on wide f
 def check_for_wide_ts_as_parquet(context):
     logger.debug(u'STEP: Given that I have a T8S_WORKSPACE_DIR and a wide format time series persisted to a Parquet file')
     logger.info(f'@given: => PARQUET_PATH = {context.PARQUET_PATH}')
-    file_name_of_time_series_in_wide_format = 'ts_01.parquet'
-    path_str: str = str(context.PARQUET_PATH) + '/' + file_name_of_time_series_in_wide_format
-    path = Path(path_str)
-    logger.debug('path: ' + str(path))
-    ctx = TSBuilder(ReadParquetFile())
-    ts1: TimeSerie = ctx.build_from_file(Path(path_str))
-    assert int(ts1.features) == 3
-    assert ts1.format == 'wide'
-    assert len(ts1.df) == 4
+    def create_ts(filename):
+        file_name_of_time_series_in_wide_format = filename
+        path_str: str = str(context.PARQUET_PATH) + '/' + file_name_of_time_series_in_wide_format
+        path = Path(path_str)
+        logger.debug('path: ' + str(path))
+        ctx = TSBuilder(ReadParquetFile())
+        ts1: TimeSerie = ctx.build_from_file(Path(path_str))
+        assert int(ts1.features) == 3
+        assert ts1.format == 'wide'
+        assert len(ts1.df) == 4
+        return ts1
+
+    ts1 = create_ts('ts_01.parquet')
+
     # Adiciono NaNs em alguns pontos
     # Coluna de indice não é considerada no atributo 'iloc'
     logger.debug(f'ts1.df.index.name: {str(ts1.df.index.name)}')
