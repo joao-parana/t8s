@@ -12,8 +12,8 @@ from t8s.ts_writer import TSWriter, WriteParquetFile
 from t8s.ts_builder import TSBuilder
 from t8s.ts_builder import ReadParquetFile
 from behave import given, when, then, use_step_matcher, step # type: ignore
-from behave.model import Table
-from behave_pandas import table_to_dataframe, dataframe_to_table
+from behave.model import Table # type: ignore
+from behave_pandas import table_to_dataframe, dataframe_to_table # type: ignore
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
 
 LogConfig().initialize_logger(DEBUG)

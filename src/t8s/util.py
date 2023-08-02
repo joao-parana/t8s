@@ -90,13 +90,13 @@ class Util:
 
     @staticmethod
     def identify_start_and_end_of_nan_block(df, col) -> pd.DataFrame | None:
-        logger.debug(f'\ncol: {col}, \ndf:\n {df[col]} \ntype: {type(df[col])}')
+        logger.debug(f'\ncol: {col}, \ndf:\n{df[col]} \ntype: {type(df[col])}')
         # O schema da saida é: {'Value': [bool array], 'Counts': [int array], 'Start': [int array]}
         logger.debug(f'{df[col].head(1)}, {df[col].head(1)}, {type(df[col].head(1))}')
         x: Series = df[col]
         # if df[col].head(1).isnull().values.any():
-        if np.isnan(df[col].iloc[1]):
-            logger.debug('Primeiro elemento da série é NaN')
+        if np.isnan(df[col].iloc[0]):
+            logger.error('OperationNotSupported: Primeiro elemento da série é NaN')
             return None
         else:
             logger.debug('Primeiro elemento da série não é NaN')
@@ -104,7 +104,7 @@ class Util:
             return null_and_notnull_counts
 
     @staticmethod
-    def identify_all_start_and_end_of_nan_block(df) -> tuple[dict[str, pd.DataFrame], int]:
+    def identify_all_start_and_end_of_nan_block(df: pd.DataFrame) -> tuple[dict[str, pd.DataFrame], int]:
         last_idx = 0
         ret_all_s_e_nan_block = {}
         cols = Util.get_numeric_column_names(df)

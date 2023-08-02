@@ -7,7 +7,7 @@ from behave import given, when, then, model, step # type: ignore
 from behave.model import Feature, Scenario # type: ignore
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL, log
 from behave import use_step_matcher # type: ignore
-
+import t8s
 from t8s.util import Util
 from t8s.ts import TimeSerie
 from t8s import get_sample_df
@@ -18,7 +18,8 @@ use_step_matcher("parse")
 LogConfig().initialize_logger(INFO)
 logger = LogConfig().getLogger()
 print(f'\n\n• The script "environment.py" was loaded ...\n')
-print(f'\n• The python version used is "{sys.version_info}"\n\n')
+print(f'\n• The python version used is "{sys.version_info}"\n')
+print(f'\n• t8s package version is {t8s.__version__}\n\n')
 
 def list_files(prefix: str, context):
     l: list = Util.list_all_files(context.PARQUET_PATH)
