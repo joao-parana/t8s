@@ -27,6 +27,7 @@ dependencies = [
   "pyyaml",
   "pyarrow",
   "pandas",
+  "scikit-learn",
   "behave",
   "behave-pandas"
 ]

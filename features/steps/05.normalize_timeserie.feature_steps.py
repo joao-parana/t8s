@@ -143,8 +143,8 @@ def normalize(context):
     scaler: TransformerMixin = MinMaxScaler(feature_range=(-1, 1))
     assert isinstance(scaler, TransformerMixin)
     # TODO: corrigir problema KeyError: None que ocorre no Pandas. OBS: O código está funcionando no SmokeTest
-    # context.ts1 = ts1.normalize(scaler, numeric_columns = None, inplace = True)
-    # logger.info(context.ts1)
+    context.ts1 = ts1.normalize(scaler, numeric_columns = None, inplace = True)
+    logger.info(context.ts1)
 
 @then(u'I check the result of normalization running the inverse operation (denormalize) for some values')
 def check_normalization(context):

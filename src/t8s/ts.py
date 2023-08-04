@@ -260,9 +260,13 @@ class TimeSerie(ITimeSerie):
         else:
             column_list = numeric_columns
         logger.info(f'columns -> {self.df.columns} -> column_list: {column_list}')
+        if len(column_list) == 0:
+            # TODO: escolher uma Exception mais adequada, tipo InvalidStateError
+            raise Exception('Não há colunas numéricas para normalizar')
+
         df_norm = self.df.copy(deep=True)
 
-        df_norm[numeric_columns] = pd.DataFrame(scaler.fit_transform(self.df[numeric_columns]))
+        df_norm[column_list] = pd.DataFrame(scaler.fit_transform(self.df[column_list]))
         # Restaura a coluna timestamp
         timestamp_col = self.df.columns[0]
         df_norm[timestamp_col] = self.df[timestamp_col]
