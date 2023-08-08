@@ -154,10 +154,11 @@ class TimeSerie(ITimeSerie):
             raise Exception('Não foram fornecidos dados para criação da série temporal. Use o método TimeSerie.empty() se desejar criar uma série temporal vazia')
         first_column_type = self.df[self.df.columns[0]].dtype
         if first_column_type != 'datetime64[ns]':
-            print(self.df.info())
+            logger.info(self.df.info())
             logger.error(self.df.info())
-            raise Exception('A primeira coluna deve ser um Timestamp (datetime)' +
-            ' experado ' + 'datetime64[ns]' + ' recebido ' + str(first_column_type))
+            raise Exception('A primeira coluna deve ser um Timestamp.' +
+            ' Experado ' + 'datetime64[ns]' + ', recebido ' + str(first_column_type) +
+            f'\nself.df.info() =\n{self.df.info()}\n')
         logger.debug('Objeto TimeSerie construido com sucesso')
 
     def __repr__(self):
@@ -252,7 +253,6 @@ class TimeSerie(ITimeSerie):
         ret.sort() # sort é operação mutável !
         return ret
 
-
     def normalize(self, scaler: TransformerMixin, numeric_columns: list[str] | None = None, inplace: bool = False) -> TimeSerie:
         column_list: list[str] = []
         if numeric_columns is None:
@@ -299,10 +299,10 @@ class TimeSerie(ITimeSerie):
         for idx, row in self.df.iterrows():
             row_numeric_values: pd.Series = row[numeric_columns]
             row_denormalized = denormalize_row()(row_numeric_values)
-            print('-----------------------------------------------------')
-            print(f'idx = {idx}, row =\n{row}')
-            print(f'row[numeric_columns] =\n{row[numeric_columns]}')
-            print(f'denormalize(scaler)(row[numeric_columns]) = {row_denormalized}')
+            logger.info('-----------------------------------------------------')
+            logger.info(f'idx = {idx}, row =\n{row}')
+            logger.info(f'row[numeric_columns] =\n{row[numeric_columns]}')
+            logger.info(f'denormalize(scaler)(row[numeric_columns]) = {row_denormalized}')
 
     @staticmethod
     def join(list_of_ts: list['TimeSerie']) -> 'TimeSerie':

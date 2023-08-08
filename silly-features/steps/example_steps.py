@@ -2,6 +2,7 @@
 # -- FILE: features/steps/example_steps.py
 
 import os
+import json
 from t8s.log_config import LogConfig
 from behave import given, when, then, model, step # type: ignore
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
@@ -23,6 +24,29 @@ def check_number(context, number):  # -- NOTE: number is converted into integer
 def test(context):
     assert context.failed is False
     assert context.tests_count >= 0
+
+# --------------------------------------------------------------------------------
+
+@given('an attribute created in context')
+def step_impl_1(context):
+    context.meu_atributo = 'valor'
+    def minha_funcao_1(x):
+        return x**2
+
+    context.minha_funcao_1 = minha_funcao_1
+    print(f'\ntype(context.minha_funcao_1) = {type(context.minha_funcao_1)}\n')
+    context.minha_funcao_2 = lambda x: x + 1
+    print(f'\ntype(context.minha_funcao_2) = {type(context.minha_funcao_2)}\n')
+
+@then('I can list the context attributes in another step and check the created attribute')
+def step_impl_2(context):
+    print(vars(context.scenario))
+    # json_str = json.dumps(vars(context.scenario), indent=2)
+    # print(json_str)
+    assert context.meu_atributo == 'valor'
+    assert callable(context.minha_funcao_1), "A função minha_funcao_1 não foi criada corretamente"
+    assert isinstance(context.minha_funcao_2, type(lambda x: x)), 'context.minha_funcao is not a function'
+    assert callable(context.minha_funcao_2), "A função minha_funcao_2 não foi criada corretamente"
 
 # --------------------------------------------------------------------------------
 

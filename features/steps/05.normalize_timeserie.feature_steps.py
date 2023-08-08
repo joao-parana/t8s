@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler # type: ignore
 from sklearn.base import TransformerMixin   # type: ignore
 from t8s import get_sample_df
+from t8s import ts
 from t8s.log_config import LogConfig
 from t8s.util import Util
 from t8s.io import IO
@@ -105,6 +106,16 @@ def main():
     # ret = denormalize(scaler)([1/3, -2/3])
     # print(ret, type(ret))
 
+"""
+Feature: Normalize data for multivariate and univariate Timeseries on wide format
+  Value Statement:
+    As a data analyst
+    I want the ability to normalize values in multivariate and univariate Timeseries on wide format
+    So I can make the data available for machine learning training to solve business problems.
+
+  Background:
+    Given that I have a T8S_WORKSPACE_DIR and a wide format time series available as Parquet file
+"""
 
 @given(u'that I have a T8S_WORKSPACE_DIR and a wide format time series available as Parquet file')
 def setup(context):
@@ -116,6 +127,16 @@ def setup(context):
     logger.info(f'-------------------------------------------------')
     # A forma de passar estes dados para os steps seguintes é usando o objeto context
 
+"""
+  Scenario: Normalize multivariate time series data using normalization methods such as MinMaxScaler RobustScaler
+    Given that I create a multivariate Timeseries using the selected parquet file
+    When I normalize the multivariate time series data using the chosen methods below
+    '''
+    StandardScaler, MinMaxScaler, RobustScaler, MaxAbsScaler, QuantileTransformer, PowerTransformer
+    '''
+    Then I check the result of normalization running the inverse operation (denormalize) for some values
+    # Constraint: The Timeseries has no invalid values
+"""
 
 @given(u'that I create a multivariate Timeseries using the selected parquet file')
 def create_time_series(context):
@@ -139,20 +160,44 @@ def create_time_series(context):
 @when(u'I normalize the multivariate time series data using the chosen methods below')
 def normalize(context):
     logger.info(u'STEP: When I normalize the multivariate time series data using the chosen methods below')
-    ts1 = context.ts1
+    ts1: TimeSerie = context.ts1
     scaler: TransformerMixin = MinMaxScaler(feature_range=(-1, 1))
     assert isinstance(scaler, TransformerMixin)
-    # TODO: corrigir problema KeyError: None que ocorre no Pandas. OBS: O código está funcionando no SmokeTest
-    context.ts1 = ts1.normalize(scaler, numeric_columns = None, inplace = True)
-    logger.info(context.ts1)
+    context.ts1_normalized = ts1.normalize(scaler, numeric_columns = None, inplace = True)
+    logger.info(f'ts1_normalized =\n{context.ts1_normalized}')
 
 @then(u'I check the result of normalization running the inverse operation (denormalize) for some values')
-def check_normalization(context):
+def check_normalization1(context):
     logger.info(u'STEP: Then I check the result of normalization running the inverse operation (denormalize) for some values')
+    ts1_normalized: TimeSerie = context.ts1_normalized
+    def do_denormalization(ts1_normalized: TimeSerie) -> TimeSerie | None:
+        ts1 = ts1_normalized.denormalize()
+        return ts1
+    ts1_denormalized = do_denormalization(ts1_normalized)
+    # Comparar os valores de ts1 e ts1_denormalized
+    logger.info(f'\nts1 =\n{context.ts1}\nts1_denormalized =\n{ts1_denormalized}\n')
+
+"""
+  Scenario: Normalize some features in multivariate time series data
+    Given that I create a multivariate Timeseries using the selected parquet file
+    When I normalize only some of the features in the multivariate time series data using the methods below
+    '''
+    StandardScaler, MinMaxScaler, RobustScaler, MaxAbsScaler, QuantileTransformer, PowerTransformer
+    '''
+    Then I check the result of normalization running the inverse operation (denormalize)@then(u'I check the result of normalization running the inverse operation (denormalize)')
+def step_impl(context):
+    raise NotImplementedError(u'STEP: Then I check the result of normalization running the inverse operation (denormalize)')
+    # Constraint: The Timeseries has no invalid values
+"""
 
 @when(u'I normalize only some of the features in the multivariate time series data using the methods below')
 def normalize_some_features(context):
     logger.info(u'STEP: When I normalize only some of the features in the multivariate time series data using the methods below')
+
+@then(u'I check the result of normalization running the inverse operation (denormalize)')
+def check_normalization2(context):
+    logger.info(u'STEP: Then I check the result of normalization running the inverse operation (denormalize)')
+
 
 if __name__ == '__main__':
     main()

@@ -22,6 +22,6 @@ Feature: Normalize data for multivariate and univariate Timeseries on wide forma
     """
     StandardScaler, MinMaxScaler, RobustScaler, MaxAbsScaler, QuantileTransformer, PowerTransformer
     """
-    Then I check the result of normalization running the inverse operation (denormalize) for some values
+    Then I check the result of normalization running the inverse operation (denormalize)
     # Constraint: The Timeseries has no invalid values
 

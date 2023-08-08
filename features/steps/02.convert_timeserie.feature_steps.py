@@ -42,7 +42,9 @@ def background(context):
     logger.info(f'Background@given:  CSV_PATH = {context.CSV_PATH}')
     logger.info(f'Background@given:  PARQUET_PATH = {context.PARQUET_PATH}')
     context.list_files(f'Background@given:  ', context)
-    logger.info(f'\background : context.ts1 -> \n{str(context.ts1)}')
+    logger.info(f'Background : context -> \ncontext.ts1 = \n{str(context.ts1)}')
+    logger.info(f'Background : context -> dir(context) = \n{dir(context)})')
+    logger.info(f'Background : context -> context.__dict__.keys() = \n{context.__dict__.keys()})')
     logger.info(f'-------------------------------------------------')
     # A forma de passar estes dados para os steps seguintes é usando o objeto context
 
@@ -96,3 +98,7 @@ def save_time_serie_to_parquet(context):
     # Grava a série temporal ts1 em parquet
     write_ts_to_parquet_file(context.ts1, context.PARQUET_PATH, 'ts_long_01.parquet')
     context.list_files(f'save_time_serie_to_parquet:  ', context)
+
+@then(u'finally I can create a time series using the long format parquet file created to check the schema and data.')
+def create_ts_long_from_parquet(context):
+    logger.info(u'STEP: Then finally I can create a time series using the long format parquet file created to check the schema and data.')

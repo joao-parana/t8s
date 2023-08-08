@@ -27,5 +27,6 @@ Value Statement:
     types: [<class 'pandas._libs.tslibs.timestamps.Timestamp'>, <class 'str'>, <class 'numpy.float32'>]
     """
     And can I save this long format time series to a parquet file in the T8S_WORKSPACE_DIR/data/parquet directory
+    And finally I can create a time series using the long format parquet file created to check the schema and data.
 
     # Constraint: The Dataframe doesn't have invalid values

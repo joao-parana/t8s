@@ -45,6 +45,10 @@ def before_all(context):
     logger.info(f'before_all: PARQUET_PATH      = {context.PARQUET_PATH}')
     create_sample_ts_and_save_as_parquet(context)
     context.list_files(f'before_all: ', context)
+    # Passo funções utilitárias via contexto para serem usadas nas steps para obter
+    # reusabilidade de código.
+    context.create_sample_ts_and_save_as_parquet = create_sample_ts_and_save_as_parquet
+    context.clean_data_dir = clean_data_dir
     logger.info(f'-------------------------------------------------')
 
 def write_ts_to_parquet_file(ts, parquet_path, filename: str):
@@ -83,8 +87,6 @@ def clean_data_dir(CSV_PATH, PARQUET_PATH):
 def before_feature(context, feature: Feature):
     # Inicializa o status no contexto
     context.status = context.status if hasattr(context, 'status') else 'not defined'
-    # Passo funções utilitárias via contexto para serem usadas nas steps.
-    context.create_sample_ts_and_save_as_parquet = create_sample_ts_and_save_as_parquet
     # Execute um método uma única vez para todos os cenários de teste da Feature
     logger.info(f'-------------------------------------------------')
     logger.info(f'before_feature: T8S_WORKSPACE_DIR = {context.T8S_WORKSPACE_DIR}')

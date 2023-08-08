@@ -10,8 +10,8 @@ from t8s.io import IO
 from t8s.ts import TimeSerie
 from t8s.ts_writer import TSWriter, WriteParquetFile
 from behave import given, when, then, use_step_matcher, step # type: ignore
-from behave.model import Table
-from behave_pandas import table_to_dataframe, dataframe_to_table
+from behave.model import Table  # type: ignore
+from behave_pandas import table_to_dataframe, dataframe_to_table # type: ignore
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
 
 logger = LogConfig().getLogger()
@@ -200,3 +200,33 @@ def table_to_ts(context):
     context.ts3 = TimeSerie(df3, format='wide', features_qty=len(df3.columns))
     logger.info(f'context.ts3 =\n{context.ts3}')
     logger.info(f'Test of table_to_ts passed !')
+
+# -----------------------------------------------------------------------------------------------
+
+"""
+  Scenario: Third, I create a time series using a datafusion query and save as a parquet file
+    Given a Datafusion SQL query
+    When I convert a Datafusion Table to a Pandas Dataframe using the Datafusion API and the query mentioned above
+    And I create a time series
+    Then I have a time series with the `correct` number of rows and columns, schema and time interval to be checked
+    # https://github.com/apache/arrow-datafusion-python/blob/main/examples/sql-on-pandas.py
+"""
+
+@given(u'a Datafusion SQL query')
+def step_impl1(context):
+    logger.debug(u'STEP: Given a Datafusion SQL query')
+
+
+@when(u'I convert a Datafusion Table to a Pandas Dataframe using the Datafusion API and the query mentioned above')
+def step_impl2(context):
+    logger.debug(u'STEP: When I convert a Datafusion Table to a Pandas Dataframe using the Datafusion API and the query mentioned above')
+
+
+@when(u'I create a time series')
+def step_impl3(context):
+    logger.debug(u'STEP: When I create a time series')
+
+
+@then(u'I have a time series with the `correct` number of rows and columns, schema and time interval to be checked')
+def step_impl4(context):
+    logger.debug(u'STEP: Then I have a time series with the `correct` number of rows and columns, schema and time interval to be checked')

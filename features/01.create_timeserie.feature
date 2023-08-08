@@ -2,7 +2,7 @@ Feature: Create a time series set using Dataframe, CSV and Parquet
 
 Value Statement:
   As a data analyst
-  I want the ability to create a timeseries set using Dataframe, CSV and Parquet
+  I want the ability to create a timeseries set using Dataframe, CSV and Parquet files, or SQL queries
   So that I can start studying the data right away and propose solutions for the business.
 
   Background:
@@ -36,3 +36,10 @@ Value Statement:
     When converted to a data frame using 1 row as column names and 1 column as index
     And printed using data_frame_to_table function
     Then I build a time series with the `correct` number of rows and columns
+
+  Scenario: Third, I create a time series using a datafusion query and save as a parquet file
+    Given a Datafusion SQL query
+    When I convert a Datafusion Table to a Pandas Dataframe using the Datafusion API and the query mentioned above
+    And I create a time series
+    Then I have a time series with the `correct` number of rows and columns, schema and time interval to be checked
+    # https://github.com/apache/arrow-datafusion-python/blob/main/examples/sql-on-pandas.py
