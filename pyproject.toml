@@ -28,6 +28,7 @@ dependencies = [
   "pyarrow",
   "pandas",
   "scikit-learn",
+  "datafusion",
   "behave",
   "behave-pandas"
 ]
