@@ -119,6 +119,17 @@ class ITimeSerie(ITimeSeriesProcessor, IProvenanceable):
 
 
 class TimeSerie(ITimeSerie):
+    """
+    Num contexto de aprendizado de máquina, a coluna de tempo em um conjunto de dados
+    de série temporal (univariada ou multivariada) também pode ser considerada uma feature.
+    Isso porque a coluna de tempo pode ser usada como uma variável independente para prever
+    valores futuros das outras variáveis dependentes no conjunto de dados. Assim features_qty
+    deve contabilizar todas as features do conjunto de dados, incluindo a coluna de tempo e
+    excluindo colunas alvo (caso existam).
+    O formato esperado para o Dataset de origem é composto pela coluna de tempo na primeira
+    coluna e as colunas alvo, ao final. Todas as features ficam no meio do Dataset. O motivo
+    é simplesmente uma simplificação para facilitar a implementação.
+    """
     def __init__(self, *args, format, features_qty, **kwargs):
         assert isinstance(format, str), "format must be a string"
         assert isinstance(features_qty, int), "features_qty must be a int"
