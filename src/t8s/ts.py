@@ -164,7 +164,8 @@ class TimeSerie(ITimeSerie):
         if self.df.empty:
             raise Exception('Não foram fornecidos dados para criação da série temporal. Use o método TimeSerie.empty() se desejar criar uma série temporal vazia')
         first_column_type = self.df[self.df.columns[0]].dtype
-        if first_column_type != 'datetime64[ns]':
+        if first_column_type not in ['datetime64[ns]', 'datetime64[ns, America/Sao_Paulo]']:
+            # TODO: Investigar forma de loggar os tipos de dados e detalhes do DataFrame
             logger.info(self.df.info())
             logger.error(self.df.info())
             raise Exception('A primeira coluna deve ser um Timestamp.' +
