@@ -3,6 +3,9 @@
 
 import os
 import json
+import pandas as pd
+import matplotlib.pyplot as plt
+
 from t8s.log_config import LogConfig
 from behave import given, when, then, model, step # type: ignore
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
@@ -118,3 +121,91 @@ def final_table(context):
         v3 = actual.get(headings[2])
         logger.info(f'STEP: Then the last step has a final table -> ' +
             f'table.rows[{idx}]: [ {v1}, {v2}, {v3} ], {type(v1)}, {type(v2)}, {type(v3)}')
+
+
+# --------------------------------------------------------------------------------
+
+"""
+Scenario: Plotting a time series using Pandas Dataframe
+"""
+
+@given(u'a dataset in the Parquet file representing a time series')
+def read_machine_13(context):
+    logger.info(u'STEP: Given a dataset in the Parquet file representing a time series')
+    f = 'datasets/machine13.parquet'
+    df = pd.read_parquet(f)
+    context.df = df
+
+@then(u'I plot 4 features selected for exploratory analysis')
+def step_impl(context):
+    logger.info(u'STEP: Then I plot 4 features selected for exploratory analysis')
+    do_plot(context.df)
+
+def do_plot(df: pd.DataFrame):
+
+    def plot_synthetic_data():
+        # Criando um DataFrame simples de exemplo para experimentar com
+        # gráficos de duas escalas, sendo uma na esquerda (colunas: a, b) e outra
+        # na direita (colunas: c, d)
+        df = pd.DataFrame({
+            't': pd.date_range('2022-01-01', periods=10, freq='D'),
+            'a': [8, 6, 2, 3, 10, 5, 7, 8, 9, 4],
+            'b': [20, 14, 18, 8, 4, 6, 16, 10, 12, 20],
+            'c': [180, 60, 90, 120, 150, 30, 270, 210, 240, 300],
+            'd': [140, 200, 80, 120, 160, 40, 320, 400, 280, 360]
+        })
+
+        # Configurando o índice do DataFrame como a coluna 't'
+        df.set_index('t', inplace=True)
+
+        # Criando o gráfico de linhas com duas escalas y
+        fig, ax1 = plt.subplots()
+
+        # Plotando as colunas 'a' e 'b' no eixo y esquerdo
+        ax1.plot(df.index, df['a'], color='red')
+        ax1.plot(df.index, df['b'], color='blue')
+        ax1.set_ylabel('Escala esquerda')
+
+        # Criando um segundo eixo y para as colunas 'c' e 'd'
+        ax2 = ax1.twinx()
+
+        # Plotando as colunas 'c' e 'd' no eixo y direito
+        ax2.plot(df.index, df['c'], color='green')
+        ax2.plot(df.index, df['d'], color='orange')
+        ax2.set_ylabel('Escala direita')
+
+        # Exibindo o gráfico
+        plt.show()
+
+    plot_synthetic_data()
+
+    print(df.columns)
+
+    # Criando o gráfico de linhas
+    df.plot(kind='line')
+    plt.show()
+
+    # Renomeando as colunas
+    df.rename(columns={'index': 'TIMESTAMP', 'G13TE6021_I_UTML_PI09': 'T6021',
+        'G13TE6022_I_UTML_PI09': 'T6022', 'G13TE6023_I_UTML_PI09': 'T6023',
+        'G13TE6024_I_UTML_PI09': 'T6024'}, inplace=True)
+    df.info()
+    # Convertendo a coluna 'timestamp' para UTC
+    df['TIMESTAMP'] = df['TIMESTAMP'].dt.tz_convert('UTC').dt.tz_localize(None)
+    df.info()
+    # Configurando o índice do DataFrame como a coluna 'index'
+    df.set_index('TIMESTAMP', inplace=True)
+    df.info()
+
+    fig, ax1 = plt.subplots(figsize=(12, 4)) # 12 é largura e 4 é altura do canvas
+    # Plotando as colunas 'a' e 'b' no eixo y esquerdo
+    ax1.plot(df.index, df['T6021'], color='red')
+    ax1.plot(df.index, df['T6023'], color='blue')
+    ax1.set_ylabel('T6021 (vermelho) e T6023 (azul)')
+    # Criando um segundo eixo y para as colunas 'T6022' e 'T6024'
+    ax2 = ax1.twinx()
+    # Plotando as colunas 'T6021' e 'T6023' no eixo y direito
+    ax2.plot(df.index, df['T6022'], color='green')
+    ax2.plot(df.index, df['T6024'], color='orange')
+    ax2.set_ylabel('T6022 (verde) e T6024 (laranja)')
+    plt.show()

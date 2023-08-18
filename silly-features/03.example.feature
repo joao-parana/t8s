@@ -31,3 +31,7 @@ Feature: Sum a Pair
         | Alonso | Barcelona | 20/07/1981 |
         | Bred   | London  | 17/05/1980 |
         | Pedro   | Brasilia  | 19/08/1958 |
+
+  Scenario: Plotting a time series using Pandas Dataframe
+    Given a dataset in the Parquet file representing a time series
+    Then I plot 4 features selected for exploratory analysis
