@@ -13,6 +13,10 @@ keywords = []
 authors = [
   { name = "João Antonio Ferreira", email = "joao.parana@gmail.com" },
 ]
+maintainers = [
+  { name = "João Antonio Ferreira", email = "joao.parana@gmail.com" },
+  { name = "Rafael Marinho Soares", email = "rsoares@peq.coppe.ufrj.br" },
+]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
@@ -25,6 +29,7 @@ dependencies = [
   "keyring",
   "keyrings.google-artifactregistry-auth",
   "pyyaml",
+  "tomli",
   "pyarrow",
   "pandas",
   "scikit-learn",
