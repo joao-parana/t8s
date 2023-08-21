@@ -8,13 +8,17 @@ from t8s.log_config import LogConfig
 from t8s.util import Util
 from t8s.io import IO
 from t8s.ts import TimeSerie
+from t8s.ts import TSStats
 from t8s.ts_writer import TSWriter, WriteParquetFile
+from t8s.ts_builder import TSBuilder, ReadParquetFile # , ReadCsvFile
 from behave import given, when, then, use_step_matcher, step # type: ignore
 from behave.model import Table  # type: ignore
 from behave_pandas import table_to_dataframe, dataframe_to_table # type: ignore
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
 
 logger = LogConfig().getLogger()
+
+epsilon = 1e-6
 
 """
 Feature: Create a time series set using Dataframe, CSV and Parquet
@@ -214,19 +218,111 @@ def table_to_ts(context):
 
 @given(u'a Datafusion SQL query')
 def step_impl1(context):
-    logger.debug(u'STEP: Given a Datafusion SQL query')
-
+    logger.info(u'STEP: Given a Datafusion SQL query')
+    logger.info(context.ts1)
 
 @when(u'I convert a Datafusion Table to a Pandas Dataframe using the Datafusion API and the query mentioned above')
 def step_impl2(context):
-    logger.debug(u'STEP: When I convert a Datafusion Table to a Pandas Dataframe using the Datafusion API and the query mentioned above')
-
+    logger.info(u'STEP: When I convert a Datafusion Table to a Pandas Dataframe using the Datafusion API and the query mentioned above')
 
 @when(u'I create a time series')
 def step_impl3(context):
-    logger.debug(u'STEP: When I create a time series')
-
+    logger.info(u'STEP: When I create a time series')
 
 @then(u'I have a time series with the `correct` number of rows and columns, schema and time interval to be checked')
 def step_impl4(context):
-    logger.debug(u'STEP: Then I have a time series with the `correct` number of rows and columns, schema and time interval to be checked')
+    logger.info(u'STEP: Then I have a time series with the `correct` number of rows and columns, schema and time interval to be checked')
+
+# -----------------------------------------------------------------------------------------------
+
+@given(u'a time series')
+def step_impl_5(context):
+    logger.info(u'STEP: Given a time series')
+    logger.info(context.ts1)
+
+@when(u'I call the get_statistics function')
+def step_impl_6(context):
+    logger.info(u'STEP: When I call the get_statistics function')
+    logger.info(context.ts1)
+    stats: TSStats = context.ts1.get_statistics()
+    context.stats = stats
+
+@then(u'I have a descriptive statistics object for the time series')
+def step_impl_7(context):
+    logger.info(u'STEP: Then I have a descriptive statistics object for the time series')
+    print(f'ts1 statistics =\n{context.stats}')
+    assert context.stats is not None
+    assert context.stats.count('timestamp')  == 4
+    assert context.stats.mean('velocidade')  - 2325 <= epsilon
+    assert context.stats.mean('temperatura') - 25.299999 <= epsilon
+    assert context.stats.min('velocidade')  - 1100 <= epsilon
+    assert context.stats.min('temperatura') - 23.2 <= epsilon
+    assert context.stats.q1('velocidade')  - 1175 <= epsilon
+    assert context.stats.q1('temperatura') - 24.55 <= epsilon
+    assert context.stats.q2('velocidade')  - 2100 <= epsilon
+    assert context.stats.q2('temperatura') - 25.50 <= epsilon
+    assert context.stats.q3('velocidade')  - 3250 <= epsilon
+    assert context.stats.q3('temperatura') - 26.25 <= epsilon
+    assert context.stats.max('velocidade')  - 4000 <= epsilon
+    assert context.stats.max('temperatura') - 27 <= epsilon
+    assert context.stats.std('velocidade')  - 1417.450806 <= epsilon
+    assert context.stats.std('temperatura') - 1.620699 <= epsilon
+    """
+    ts1 statistics =
+                                timestamp  temperatura   velocidade
+    Contagem                            4     4.000000     4.000000
+    Média             2022-01-01 01:30:00    25.299999  2325.000000
+    Mínimo            2022-01-01 00:00:00    23.200001  1100.000000
+    Primeiro quartil  2022-01-01 00:45:00    24.550000  1175.000000
+    Mediana           2022-01-01 01:30:00    25.500000  2100.000000
+    Terceiro quartil  2022-01-01 02:15:00    26.250000  3250.000000
+    Máximo            2022-01-01 03:00:00    27.000000  4000.000000
+    Desvio padrão                     NaN     1.620699  1417.450806
+    """
+
+# -----------------------------------------------------------------------------------------------
+
+@when(u'I call the get_min_max_variation_factors function in the Util class')
+def step_impl_8(context):
+    logger.info(u'STEP: When I call the get_min_max_variation_factors function in the Util class')
+    min_max_variation_factors = Util.get_min_max_variation_factors(context.ts1.df)
+    context.min_max_variation_factors = min_max_variation_factors
+
+@then(u'I have a dictionary object with minimum and maximum multiplication factor for each feature')
+def step_impl_9(context):
+    logger.info(u'STEP: Then I have a dictionary object with minimum and maximum multiplication factor for each feature')
+    logger.info(f'min_max_variation_factors =\n{context.min_max_variation_factors}')
+
+@then(u'I can use this information to check for outliers using a naive method')
+def step_impl_10(context):
+    logger.info(u'STEP: Then I can use this information to check for outliers using a naive method')
+    logger.info(f'If min_max_variation_factors is greater than 3 in at least one column, we say that there is an outlier in the time series')
+
+# -----------------------------------------------------------------------------------------------
+
+@when(u'I pass select_features as a list of feature names to the TimeSerie constructor')
+def read_ts_for_selected_features(context):
+    logger.info(u'STEP: When I pass select_features as a list of feature names to the TimeSerie constructor')
+    ctx = TSBuilder(ReadParquetFile())
+    logger.debug("Client: ReadStrategy is set to read Parquet file.")
+    path = Path(context.PARQUET_PATH) / 'ts_01.parquet'
+    start = datetime.now()
+    select_features = ['timestamp', 'velocidade']
+    ts_for_selected_features = ctx.build_from_file(path, select_features)
+    end = datetime.now()
+    context.ts_for_selected_features = ts_for_selected_features
+    context.elapsed_time_for_read_only_selected_features = end - start
+
+@then(u'I have a time series with only a subset of features as defined in the list')
+def check_time_serie_with_two_features(context):
+    logger.info(u'STEP: Then I have a time series with only a subset of features as defined in the list')
+    logger.info(f'context.ts_for_select_features =\n{context.ts_for_selected_features}')
+    assert context.ts_for_selected_features.format == 'wide', 'format must be wide'
+    assert context.ts_for_selected_features.features == '2', 'features_qty must be 2 in this case'
+    assert context.ts_for_selected_features.df.columns[0] == 'timestamp', 'first column must be timestamp'
+    assert context.ts_for_selected_features.df.columns[1] == 'velocidade', 'second column must be velocidade'
+
+@then(u'I can read from the file system only the resources I need, improving performance when reading data.')
+def time_for_read_from_parquet_file_only_2_coluns(context):
+    logger.info(u'STEP: Then I can read from the file system only the resources I need, improving performance when reading data.')
+    logger.info(f'context.elapsed_time_for_read_only_selected_features = {context.elapsed_time_for_read_only_selected_features}')

@@ -115,3 +115,44 @@ class Util:
             last_idx = idx
 
         return (ret_all_s_e_nan_block, last_idx)
+
+    @staticmethod
+    def get_limits(df: pd.DataFrame, factor: int) -> pd.DataFrame:
+        limits = pd.DataFrame(columns=df.columns)
+        for col in df.columns:
+            std = df[col].std()
+            mean = df[col].mean()
+            limits.loc['lower', col] = mean - factor * std
+            limits.loc['upper', col] = mean + factor * std
+        return limits
+
+    @staticmethod
+    def get_min_max_variation_factors(df: pd.DataFrame) -> dict[str, tuple[int, int]]:
+        max_factor_dict = {} # Key: col_name, value: tuple(min, max) with the min and max factor
+        for col in df.columns:
+            max_factor_dict[col] = 0
+
+        def get_tuple_max_min_factors(df, col) -> tuple[int, int]:
+            mean = df[col].mean()
+            std = df[col].std()
+            min = df[col].min()
+            max = df[col].max()
+            min_factor = 0
+            max_factor = 0
+            for factor in range(0, 100):
+                v = mean - factor * std
+                if v <= min:
+                    min_factor = factor
+                    break
+            for factor in range(0, 100):
+                v = mean + factor * std
+                if v >= max:
+                    max_factor = factor
+                    break
+
+            return (min_factor, max_factor)
+
+        for col in df.columns:
+            max_factor_dict[col] = get_tuple_max_min_factors(df, col)
+
+        return max_factor_dict

@@ -43,3 +43,21 @@ Value Statement:
     And I create a time series
     Then I have a time series with the `correct` number of rows and columns, schema and time interval to be checked
     # https://github.com/apache/arrow-datafusion-python/blob/main/examples/sql-on-pandas.py
+
+  Scenario: Fourth, I need to display the descriptive statistics of a time series
+    Given a time series
+    When I call the get_statistics function
+    Then I have a descriptive statistics object for the time series
+
+  Scenario: Fifth, I need to find the standard deviation of a time series to check for outliers using a naive method
+    Given a time series
+    When I call the get_min_max_variation_factors function in the Util class
+    Then I have a dictionary object with minimum and maximum multiplication factor for each feature
+    And I can use this information to check for outliers using a naive method
+
+  Scenario: Sixth, I need to select only a subset of features in a time series persisted as a parquet file
+    Given a time series
+    When I pass select_features as a list of feature names to the TimeSerie constructor
+    Then I have a time series with only a subset of features as defined in the list
+    And I can read from the file system only the resources I need, improving performance when reading data.
+    # It is done using parquet module from pyarrow package

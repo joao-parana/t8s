@@ -193,6 +193,7 @@ def do_plot(df: pd.DataFrame):
     # Convertendo a coluna 'timestamp' para UTC
     df['TIMESTAMP'] = df['TIMESTAMP'].dt.tz_convert('UTC').dt.tz_localize(None)
     df.info()
+    df.to_parquet('datasets/machine13_01.parquet')
     # Configurando o índice do DataFrame como a coluna 'index'
     df.set_index('TIMESTAMP', inplace=True)
     df.info()

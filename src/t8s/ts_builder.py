@@ -25,7 +25,7 @@ class ReadStrategy(ABC):
     """
 
     @abstractmethod
-    def do_read(self, data: Any) -> TimeSerie:
+    def do_read(self, data: Any, select_features: list[str] | None = None) -> TimeSerie:
         pass
 
 
@@ -66,7 +66,7 @@ class TSBuilder:
 
         self._strategy = strategy
 
-    def build_from_file(self, path: Path) -> TimeSerie:
+    def build_from_file(self, path: Path, select_features: list[str] | None = None) -> TimeSerie:
         # TODO: garantir que a primeira coluna seja um Timestamp quando o formato for long ou wide
 
         """
@@ -77,7 +77,7 @@ class TSBuilder:
         # ...
 
         # logger.info(f"Context: build_from_file {path}")
-        result = self._strategy.do_read(path)
+        result = self._strategy.do_read(path, select_features)
         # logger.info('result type from build_from_file() is: ' + str(type(result)))
 
         # ...
@@ -106,12 +106,12 @@ class TSBuilder:
 
 
 class ReadParquetFile(ReadStrategy):
-    def do_read(self, data: Path) -> Optional['TimeSerie']:
+    def do_read(self, file_path: Path, select_features: list[str] | None = None) -> Optional['TimeSerie']:
         # logger.debug('Using ReadParquetFile strategy to read data from: ' + str(data))
-        assert isinstance(data, Path), "path must be a Path object"
-        assert (str(data)).endswith('.parquet'), "path must be a Path object"
+        assert isinstance(file_path, Path), "path must be a Path object"
+        assert (str(file_path)).endswith('.parquet'), "path must be a Path object"
         # Lê os metadados do arquivo Parquet
-        metadata: pq.FileMetaData = pq.read_metadata(data)
+        metadata: pq.FileMetaData = pq.read_metadata(file_path)
         # logger.debug('\nParquet file metadata:\n' + str(metadata.to_dict()) + '\n' + str(metadata.metadata))
         assert isinstance(metadata, pq.FileMetaData), "metadata must be a pq.FileMetaData object"
         dict_meta: dict = metadata.to_dict()
@@ -139,15 +139,21 @@ class ReadParquetFile(ReadStrategy):
                 # logger.debug('-----------------------------')
         # # logger.debug(metadata.row_group(0).column(0).statistics)
         # Leia o arquivo Parquet
-        parquet_file = pq.ParquetFile(data)
+        parquet_file = pq.ParquetFile(file_path)
+
         # logger.debug('\ntype(parquet_file): ' + str(type(parquet_file)) + '\n' + str(parquet_file))
         # logger.debug('\n-------------------------------')
 
         # ATENÇÃO: o método read_parquet() do Pandas não gera o Dataframe com os tipos corretos.
         # Em vez de criar float32 para o physical_type FLOAT do Parquet, ele cria float64.
         # df = pd.read_parquet(data)
-        df = parquet_file.read().to_pandas()
-        # logger.debug(df.info())
+        df = pd.DataFrame()
+        if select_features:
+            df = parquet_file.read(columns=select_features).to_pandas()
+            features_qty = len(select_features)
+        else:
+            df = parquet_file.read().to_pandas()
+            # logger.debug(df.info())
 
         # TODO: garantir que a primeira coluna seja um Timestamp quando o formato for long ou wide
         # logger.debug('\ndf:\n' + str(df))
