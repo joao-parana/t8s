@@ -5,7 +5,7 @@ Feature: Identify NaN values in multivariate and univariate Timeseries on wide f
     So I can start analyzing the data right away and come up with solutions for the business.
 
   Background:
-    Given that I have a T8S_WORKSPACE_DIR and a wide format time series persisted to a Parquet file
+    Given that I have a Dataframe with a bunch of NaNs blocks and saved as a TimeSerie object in a parquet file in T8S_WORKSPACE_DIR
 
   Scenario: Identify NaN values in multivariate Timeseries on wide format
     Given that I create a multivariate Timeseries using the selected parquet file in the T8S_WORKSPACE/data/parquet directory

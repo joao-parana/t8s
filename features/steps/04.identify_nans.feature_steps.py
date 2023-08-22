@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import datetime
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from t8s import get_sample_df
 from t8s.log_config import LogConfig
 from t8s.util import Util
@@ -26,41 +27,52 @@ Feature: Identify NaN values in multivariate and univariate Timeseries on wide f
     So I can start analyzing the data right away and come up with solutions for the business.
 
   Background:
-    Given that I have a T8S_WORKSPACE_DIR and a wide format time series persisted to a Parquet file
+    Given that I have a Dataframe with a bunch of NaNs blocks and saved as a TimeSerie object in a parquet file in T8S_WORKSPACE_DIR
 """
 # my_dict_for_all_columns, last_idx = Util.identify_all_start_and_end_of_nan_block(dados)
 
-@given(u'that I have a T8S_WORKSPACE_DIR and a wide format time series persisted to a Parquet file')
+def create_df_with_nans() -> pd.DataFrame:
+    # Criando um DataFrame de exemplo
+    values_a = [8.0, 5.0, 4.0, 3.0, 6.0, 18.0, np.nan, np.nan, np.nan, 14.0, 4.0, 4.0, 8.0, 20.0,
+                7.0, 10.0, np.nan, np.nan, np.nan, np.nan, np.nan, 16.0, 8.0, 12.0, np.nan, 9.0,
+                10.0, 4.0, 6.0, 5.0, np.nan, 6.0, 17.0, 4.0, np.nan, np.nan, 9.0, 4.0, 5.0, 7.0]
+    p = len(values_a)
+    values_b = [x + 1.1 for x in values_a]
+    df = pd.DataFrame({
+        't': pd.date_range('2023-07-26', periods=p, freq='D'),
+        'a': values_a,
+        'b': values_b
+    })
+    return df
+
+def show_my_plot(df):
+    # df.set_index('t', inplace=True)
+    df.plot(x='t', y=['a', 'b'], figsize=(12, 5), grid=True)
+    plt.show()
+
+@given(u'that I have a Dataframe with a bunch of NaNs blocks and saved as a TimeSerie object in a parquet file in T8S_WORKSPACE_DIR')
 def check_for_wide_ts_as_parquet(context):
     logger.debug(u'STEP: Given that I have a T8S_WORKSPACE_DIR and a wide format time series persisted to a Parquet file')
     logger.info(f'@given: => PARQUET_PATH = {context.PARQUET_PATH}')
-    def create_ts(filename):
-        file_name_of_time_series_in_wide_format = filename
-        path_str: str = str(context.PARQUET_PATH) + '/' + file_name_of_time_series_in_wide_format
-        path = Path(path_str)
-        logger.debug('path: ' + str(path))
-        ctx = TSBuilder(ReadParquetFile())
-        ts1: TimeSerie = ctx.build_from_file(Path(path_str))
-        assert int(ts1.features) == 3
-        assert ts1.format == 'wide'
-        assert len(ts1.df) == 4
-        return ts1
 
-    ts1 = create_ts('ts_01.parquet')
+    df = create_df_with_nans()
 
-    # Adiciono NaNs em alguns pontos
-    # Coluna de indice não é considerada no atributo 'iloc'
-    logger.debug(f'ts1.df.index.name: {str(ts1.df.index.name)}')
-    if ts1.df.index.name == 'None':
-        ts1.df.iloc[1, 1] = np.nan
-        ts1.df.iloc[1, 2] = np.nan
-        ts1.df.iloc[2, 2] = np.nan
-    else:
-        ts1.df.iloc[1, 1] = np.nan
-        ts1.df.iloc[1, 2] = np.nan
-        ts1.df.iloc[2, 2] = np.nan
-    logger.debug(f'ts1 =\n{str(ts1)}')
-    context.ts1 = ts1
+    # Exibe um grafico de linha com os valores de a e b variando no tempo. NaNs não são exibidos.
+    show_my_plot(df)
+
+    def create_ts_and_save(df, filename) -> TimeSerie:
+        path_str: str = str(context.PARQUET_PATH) + '/' + filename
+        path_ts = Path(path_str)
+        logger.debug('path_ts: ' + str(path_ts))
+        ts = TimeSerie(df, format='wide', features_qty=len(df.columns))
+        # Grava a série temporal ts1 em parquet
+        Util.to_parquet(ts, path_ts)
+        return ts
+
+    ts3 = create_ts_and_save(df, 'ts_03.parquet')
+
+    logger.debug(f'ts3 =\n{str(ts3)}')
+    context.ts3 = ts3
 
 """
   Scenario: Identify NaN values in multivariate Timeseries on wide format
