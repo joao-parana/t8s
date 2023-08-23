@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import datetime
 import numpy as np
 import pandas as pd
+from pandas.core.series import Series
 import matplotlib.pyplot as plt
 from t8s import get_sample_df
 from t8s.log_config import LogConfig
@@ -18,18 +19,6 @@ from behave_pandas import table_to_dataframe, dataframe_to_table # type: ignore
 from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
 
 logger = LogConfig().getLogger()
-
-"""
-Feature: Identify NaN values in multivariate and univariate Timeseries on wide format
-  Value Statement:
-    As a data analyst
-    I want the ability to identify NaN values in multivariate and univariate Timeseries on wide format
-    So I can start analyzing the data right away and come up with solutions for the business.
-
-  Background:
-    Given that I have a Dataframe with a bunch of NaNs blocks and saved as a TimeSerie object in a parquet file in T8S_WORKSPACE_DIR
-"""
-# my_dict_for_all_columns, last_idx = Util.identify_all_start_and_end_of_nan_block(dados)
 
 def create_df_with_nans() -> pd.DataFrame:
     # Criando um DataFrame de exemplo
@@ -50,20 +39,29 @@ def show_my_plot(df):
     df.plot(x='t', y=['a', 'b'], figsize=(12, 5), grid=True)
     plt.show()
 
-@given(u'that I have a Dataframe with a bunch of NaNs blocks and saved as a TimeSerie object in a parquet file in T8S_WORKSPACE_DIR')
+"""
+Feature: Identify NaN values in multivariate and univariate Timeseries on wide format
+  Value Statement:
+    As a data analyst
+    I want the ability to identify NaN values in multivariate and univariate Timeseries on wide format
+    So I can start analyzing the data right away and come up with solutions for the business.
+
+  Background:
+    Given that I have a TimeSerie with a bunch of NaNs blocks saved as a parquet file in T8S_WORKSPACE_DIR
+"""
+# my_dict_for_all_columns, last_idx = Util.identify_all_start_and_end_of_nan_block(dados)
+
+@given(u'that I have a TimeSerie with a bunch of NaNs blocks saved as a parquet file in T8S_WORKSPACE_DIR')
 def check_for_wide_ts_as_parquet(context):
-    logger.debug(u'STEP: Given that I have a T8S_WORKSPACE_DIR and a wide format time series persisted to a Parquet file')
+    logger.info(u'STEP: Given that I have a TimeSerie with a bunch of NaNs blocks saved as a parquet file in T8S_WORKSPACE_DIR')
     logger.info(f'@given: => PARQUET_PATH = {context.PARQUET_PATH}')
 
     df = create_df_with_nans()
 
-    # Exibe um grafico de linha com os valores de a e b variando no tempo. NaNs não são exibidos.
-    show_my_plot(df)
-
     def create_ts_and_save(df, filename) -> TimeSerie:
         path_str: str = str(context.PARQUET_PATH) + '/' + filename
         path_ts = Path(path_str)
-        logger.debug('path_ts: ' + str(path_ts))
+        logger.info('path_ts: ' + str(path_ts))
         ts = TimeSerie(df, format='wide', features_qty=len(df.columns))
         # Grava a série temporal ts1 em parquet
         Util.to_parquet(ts, path_ts)
@@ -71,84 +69,87 @@ def check_for_wide_ts_as_parquet(context):
 
     ts3 = create_ts_and_save(df, 'ts_03.parquet')
 
-    logger.debug(f'ts3 =\n{str(ts3)}')
+    logger.info(f'ts3 =\n{str(ts3)}')
     context.ts3 = ts3
 
 """
-  Scenario: Identify NaN values in multivariate Timeseries on wide format
-    Given that I create a multivariate Timeseries using the selected parquet file in the T8S_WORKSPACE/data/parquet directory
-    When I check the multivariate Timeseries for NaN values
-    Then I build a dictionary of NaN values blocks to use elsewhere
-    And I check the result of NaNs blocks.
-    # Constraint: The Timeseries has no invalid values
-"""
-
-@given(u'that I create a multivariate Timeseries using the selected parquet file in the T8S_WORKSPACE/data/parquet directory')
-def create_multivariate_ts(context):
-    logger.debug(u'STEP: Given that I create a univariate Timeseries using the selected parquet file in the T8S_WORKSPACE/data/parquet directory')
-    ts_multivariate: TimeSerie = context.ts1
-    ts_list: list[TimeSerie] = context.ts1.split()
-    context.ts_list = ts_list
-    # Aqui temos context.ts1 () e context.ts_list ()
-
-@when(u'I check the multivariate Timeseries for NaN values')
-def check_ts_for_nans(context):
-    logger.debug(u'STEP: When I check the multivariate Timeseries for NaN values')
-    ts_dict: list[dict[str, pd.DataFrame]] = {} # type: ignore
-    ts1 = context.ts1
-    logger.debug(f'ts_multivariate =\n{ts1}')
-    my_dict_for_multivariate_ts, _ = Util.identify_all_start_and_end_of_nan_block(ts1.df)
-    logger.debug(f'my_dict_for_multivariate_ts =\n{my_dict_for_multivariate_ts}')
-    context.ts_nan_dict = ts_dict
-
-@then(u'I build a dictionary of NaN values blocks to use elsewhere')
-def build_dict_for_nans_blocks(context):
-    my_dict_for_all_columns, last_idx = Util.identify_all_start_and_end_of_nan_block(context.ts1.df)
-    logger.debug(u'STEP: Then I build a dictionary of NaN values blocks to use elsewhere')
-    ts_nan_dict = context.ts_nan_dict
-
-#
-@then(u'I check the result of NaNs blocks.')
-def check_the_result_of_nans_blocks(context):
-    logger.debug(u'STEP: Then I check the result of NaNs blocks.')
-
-
-"""
   Scenario: Identify NaN values in univariate Timeseries on wide format
-    Given that I create a univariate Timeseries set using the selected parquet file in the T8S_WORKSPACE/data/parquet directory
-    When I check the univariate Timeseries for NaN values
-    Then I build a dictionary list of NaN values blocks to use elsewhere
+    Given that I read a multivariate Timeseries and convert to univariate timeseries list
+    When I check the first univariate Timeseries from list for NaN values
+    Then I build a dataframe describing blocks of NaN values to use elsewhere
     And I check the result of NaNs blocks of univariate Timeseries.
     # Constraint: The Timeseries has no invalid values
 """
 
-@given(u'that I create a univariate Timeseries set using the selected parquet file in the T8S_WORKSPACE/data/parquet directory')
-def create_univariate_ts(context):
-    logger.debug(u'STEP: Given that I create a univariate Timeseries set using the selected parquet file in the T8S_WORKSPACE/data/parquet directory')
-    ts_multivariate: TimeSerie = context.ts1
-    ts_list: list[TimeSerie] = context.ts1.split()
+@given(u'that I read a multivariate Timeseries and convert to univariate timeseries list')
+def read_multivariate_ts(context):
+    logger.info(u'STEP: Given that I read a multivariate Timeseries and convert to univariate timeseries list')
+    # posso pegar direto do contexto, já que salvei depois de criar o arquivo Parquet
+    ts3: TimeSerie = context.ts3
+
+    # Exibe um grafico de linha com os valores de a e b variando no tempo. NaNs não são exibidos.
+    # A visualização permite ter uma ideia de como os dados estão distribuídos.
+    show_my_plot(ts3.df)
+
+    # Gro a lista de univariadas e salvo no contexto
+    ts_list: list[TimeSerie] = ts3.split()
     context.ts_list = ts_list
-    # Aqui temos context.ts1 () e context.ts_list ()
+    # Aqui temos context.ts3 (série multivariada) e context.ts_list (lista de séries univariadas)
 
-@when(u'I check the univariate Timeseries for NaN values')
-def check_the_result_for_nans(context):
-    logger.debug(u'STEP: When I check the univariate Timeseries for NaN values')
-    ts_dict_list: list[dict[str, pd.DataFrame]] = [] # type: ignore
-    ts_list = context.ts_list
-    for ts_univariate in ts_list:
-        logger.debug(f'ts_univariate =\n{ts_univariate}')
-        my_dict_for_univariate_ts, _ = Util.identify_all_start_and_end_of_nan_block(ts_univariate.df)
-        logger.debug(f'my_dict_for_univariate_ts =\n{my_dict_for_univariate_ts}')
-        ts_dict_list.append(my_dict_for_univariate_ts)
+@when(u'I check the first univariate Timeseries from list for NaN values')
+def check_the_first_univariate_ts(context):
+    logger.info(u'STEP: When I check the first univariate Timeseries from list for NaN values')
+    ts_list: list[TimeSerie] = context.ts_list
+    first_univariate_ts: TimeSerie = ts_list[0]
+    logger.info(f'first_univariate_ts =\n{first_univariate_ts}')
+    # The first univariate Timeseries from list is for 'a' column
+    # Verificando se existe NaNs na série temporal univariada
+    assert first_univariate_ts.df['a'].isnull().values.any() == True, "There must be NaNs in the univariate Timeseries"
+    context.first_univariate_ts = first_univariate_ts
 
-    context.ts_nan_dict_list = ts_dict_list
-
-@then(u'I build a dictionary list of NaN values blocks to use elsewhere')
-def build_dict_list_for_nans_blocks(context):
-    # my_dict_for_all_columns, last_idx = Util.identify_all_start_and_end_of_nan_block(context.ts1.df)
-    logger.debug(u'STEP: Then I build a dictionary list of NaN values blocks to use elsewhere')
-    # ts_nan_dict = context.ts_nan_dict
+@then(u'I build a dataframe describing blocks of NaN values to use elsewhere')
+def build_dict_for_nans_blocks(context):
+    logger.info(u'STEP: Then I build a dictionary list of NaN values blocks to use elsewhere')
+    # The first univariate Timeseries from list is for 'a' column
+    first_univariate_ts = context.first_univariate_ts
+    start_end_of_nan_blocks: pd.DataFrame | None = Util.identify_start_and_end_of_nan_block(first_univariate_ts.df, 'a')
+    logger.info(f'start_end_of_nan_blocks =\n{start_end_of_nan_blocks}')
+    context.ts_nan_dict = start_end_of_nan_blocks
 
 @then(u'I check the result of NaNs blocks of univariate Timeseries.')
-def check_the_result_of_nans(context):
-    logger.debug(u'STEP: Then I check the result of NaNs blocks of univariate Timeseries.')
+def check_the_result_of_nans_blocks(context):
+    logger.info(u'STEP: Then I check the result of NaNs blocks of univariate Timeseries.')
+    assert context.ts_nan_dict is not None, "ts_nan_dict must not be None"
+    ts_nan_dict = context.ts_nan_dict
+    value: Series = ts_nan_dict['Value']
+    counts: Series = ts_nan_dict['Counts']
+    start: Series = ts_nan_dict['Start']
+    # Verificar se o primeiro elemento é False
+    assert value[0] == False, "First element of Value must be False"
+    # Verificar se os elementos pares são False
+    assert all(value[::2] == False), "Even elements of Value must be False"
+    # Verificar se os elementos ímpares são True
+    assert all(value[1::2] == True), "Odd elements of Value must be True"
+    # Verificar se a soma dos elementos de Counts é igual ao tamanho do DataFrame
+    assert counts.sum() == len(context.ts3.df), "Sum of Counts must be equal to DataFrame length"
+    logger.debug(f'type(start) = {type(start)}')
+    # Verifica se o ultimo elemento de start é igual ao tamanho do DataFrame
+    last_start = start[len(start) - 1]
+    last_count = counts[len(counts) - 1]
+    ts_length = len(context.ts3.df)
+    assert last_start + last_count == ts_length, "Last element of Start and Count is related to DataFrame length"
+    """
+    start_end_of_nan_blocks =
+        Value  Counts  Start
+    0   False       6      0
+    1    True       3      6
+    2   False       7      9
+    3    True       5     16
+    4   False       3     21
+    5    True       1     24
+    6   False       5     25
+    7    True       1     30
+    8   False       3     31
+    9    True       2     34
+    10  False       4     36
+    """
