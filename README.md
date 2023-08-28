@@ -65,8 +65,8 @@ hatch publish
 Execute the examples below:
 
 ```bash
-streamlit run  --server.headless true graphics/graph-01.py
-streamlit run  --server.headless true graphics/graph-02.py
+streamlit run  --server.headless true --theme.base light graphics/graph-01.py
+streamlit run  --server.headless true --theme.base light graphics/graph-02.py
 ```bash
 
 And open the URI in browser
