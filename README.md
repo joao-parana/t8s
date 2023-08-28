@@ -67,26 +67,36 @@ Execute the examples below:
 
 ```bash
 alias st='streamlit run  --server.headless true --theme.base light '
+# This start code below is referencing the file graph-01.py and graph-02.py
 st graphics/graph-01.py
 st graphics/graph-02.py
+# You can use Raw URI from GitHub repository like this:
+# st https://raw.githubusercontent.com//joao-parana/...whatever-file.py
 ```
 
 And open the URI in browser
 
+For information on **caching** see [https://docs.streamlit.io/library/advanced-features/caching](https://docs.streamlit.io/library/advanced-features/caching)
 ## Virtual Environment
 
-To generate `requirements.txt` from zero, use this:
+To generate `requirements.txt` from zero, with **Python 3.10** and
+**TensorFlow 2.10.1**, in Windows10 for GPU support, use this:
 
 ```bash
-python3 -m venv .venv
+curl -O https://www.python.org/ftp/python/3.10.11/python-3.10.11-embed-amd64.zip
+# Move files to /e/usr/local/python-3.10/
+alias python3.10=''
+/e/usr/local/python-3.10/python.exe -m venv .venv
 source .venv/Scripts/activate
+alias python3.10="$PWD/.venv/Scripts/python"
 # Install packages
-python3 -m pip install --upgrade pip
-python3 -m pip install --upgrade pyright
-python3 -m pip install tensorflow tensorflow-metadata tensorflow-datasets
-python3 -m pip install -e .
+python3.10 -m pip install --upgrade pip
+python3.10 -m pip install --upgrade pyright
+python3.10 -m pip install tensorflow==2.10.1 # tensorflow-metadata tensorflow-datasets
+python3.10 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
+python3.10 -m pip install -e .
 # Freeze instalation
-python3 -m pip freeze > requirements.txt
+python3.10 -m pip freeze > requirements.txt
 # Do your job
 # . . .
 #
