@@ -4,15 +4,19 @@ from __future__ import annotations
 from pathlib import Path
 from datetime import datetime
 import types
+import copy
 import yaml
 from abc import ABC, abstractmethod
 from typing import Any, Optional, Type, TypeVar
 import numpy as np
 import pandas as pd
+from pandas.core.series import Series
 import pyarrow as pa         # type: ignore
 import pyarrow.parquet as pq # type: ignore
 from sklearn.base import TransformerMixin   # type: ignore
 from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler # type: ignore
+# from t8s.plot import TSPlotting
+import matplotlib.pyplot as plt
 from t8s.log_config import LogConfig
 
 # TODO: Esclarecer duvida coceitual sobre o conceito de feture em séries temporais multivariadas
@@ -182,6 +186,18 @@ class TimeSerie(ITimeSerie):
         return f'TimeSerie(format={self.format}, features={self.features}, ' + \
                f'df=\n{self.df.__repr__()}) + \ntypes: {columns_types}'
 
+    def copy(self):
+        # cria uma cópia profunda do DataFrame
+        df_copy = self.df.copy(deep=True)
+
+        # clona o objeto TransformerMixin
+        scaler_copy = copy.deepcopy(self.scaler)
+
+        # cria uma nova instância do objeto TimeSerie com as cópias profundas
+        result = TimeSerie(df_copy, format=self.format, features_qty=int(self.features))
+        result.scaler = scaler_copy
+        return result
+
     def to_long(self):
         # Converte a série temporal para o formato Long
         # Considerando que na série temporal a ser convertida a primeira coluna é o
@@ -198,7 +214,8 @@ class TimeSerie(ITimeSerie):
         self.format = 'long'
         # logger.debug(self)
 
-    def to_wide(self):
+    # Atenção: este é um método mutável e não retirna nada pois modifica o objeto TimeSerie original
+    def to_wide(self) -> None:
         # Converte a série temporal para o formato Wide
         # Converte o DataFrame do formato long para o formato wide
         df_wide_format = self.df.pivot(index='timestamp', columns='ds', values='value')
@@ -323,6 +340,63 @@ class TimeSerie(ITimeSerie):
         result = TSStats(self.df)
         return result
 
+    """
+    Neste método adicionanos uma feature que contém os valores NaN da série temporal corrigidos,
+    segundo uma interpolação especificada pelo parâmetro `method`. O método retorna um novo objeto
+    TimeSerie com a feature adicionada. Se o parâmetro `inplace` for True, então o método modificará
+    o objeto TimeSerie original, adicionando a feature. O parâmetro `plot` indica se o gráfico da
+    série temporal corrigida deve ser desenhado.
+    """
+    def add_nan_mask(self, inplace=False, plot=False, method='interpolate') -> TimeSerie:
+        if self.is_multivariate():
+            raise Exception('A série temporal deve ser univariada. Use o método split() para obter uma lista de séries temporais univariadas')
+        df_interpolated: pd.DataFrame
+        if inplace:
+            df_interpolated = self.df
+        else:
+            df_interpolated = self.df.copy()
+
+        time_column = self.df.columns[0]
+        feature_column = self.df.columns[1]
+        interpolated_serie: Series = df_interpolated[feature_column].interpolate(method='spline', order=3)
+        masked_values = TimeSerie.build_mask_serie(self.df[feature_column])
+        inverse_serie = interpolated_serie * masked_values
+        nan_column_name = f'{feature_column}_nan'
+        df_interpolated[nan_column_name] = inverse_serie
+
+        result = TimeSerie.empty()
+        if inplace:
+            result = self
+        else:
+            result = TimeSerie(df_interpolated, format=self.format, features_qty=int(df_interpolated.columns.size))
+
+        logger.info(f'result =\n{result}')
+        if plot:
+            result.plot.line(figsize=(12, 5), grid=True)
+            # .plot.line(figsize=(12, 5), grid=True)
+
+
+        return TimeSerie(df_interpolated, format=self.format, features_qty=int(self.features))
+
+    """
+    Implementa-se aqui um método plot que retorna um objeto TSPlotting,
+    definindo-o como `@property`.
+
+    O clinte usa assim:
+    ts = TimeSerie(...) # constroi o objeto TimeSerie
+    ts.plot.line(...)   # desenha-se o gráfico escolhido
+    ts.plot.stackplot(...)
+    ts.plot.scatter(...)
+    ts.plot.hist(...)
+    ts.plot.bar(...)
+    ts.plot.box(...)
+    O formato assumido é `wide` e a primeira coluna é tratada sempre com timestatmps.
+    As demais colunas são tratadas como features da série temporal.
+    """
+    @property
+    def plot(self):
+        return TSPlotting(self)
+
     @staticmethod
     def join(list_of_ts: list['TimeSerie']) -> 'TimeSerie':
         if len(list_of_ts) == 0:
@@ -338,9 +412,10 @@ class TimeSerie(ITimeSerie):
             assert list_of_ts[0].format == 'wide', 'A série temporal deve estar no formato wide'
             assert list_of_ts[0].features == 2, 'A série temporal univariada deve ter apenas 2 features'
             assert list_of_ts[0].is_univariate(), 'A série temporal deve ser univariada'
+            # TODO: Assume-se que a primeira coluna é o timestamp e não existe indice no DataFrame. Ver implicações !
             # Garantindo que a primeira coluna seja o indice no Dataframe quando o formato for long ou wide
-            if (list_of_ts[0].df).index.name == 'None':
-                (list_of_ts[0].df).set_index(timestamp_column_name, inplace=True)
+            # if (list_of_ts[0].df).index.name == 'None':
+            #     (list_of_ts[0].df).set_index(timestamp_column_name, inplace=True)
             return list_of_ts[0]
 
         # Junta os dataframes em uma série temporal multivariada
@@ -364,13 +439,39 @@ class TimeSerie(ITimeSerie):
 
         # Garantindo que a primeira coluna seja o indice no Dataframe quando o formato for long ou wide
         # Define a primeira coluna como índice do dataframe, caso já não seja
-        if (multivariate_ts.df).index.name == 'None':
-            (multivariate_ts.df).set_index(timestamp_column_name, inplace=True)
-        multivariate_ts.df.set_index(timestamp_column_name, inplace=True)
+        # TODO: Assume-se que a primeira coluna é o timestamp e não existe indice no DataFrame. Ver implicações !
+        # if (multivariate_ts.df).index.name == 'None':
+        #     (multivariate_ts.df).set_index(timestamp_column_name, inplace=True)
+        # multivariate_ts.df.set_index(timestamp_column_name, inplace=True)
 
         # Imprime a série temporal multivariada
         logger.debug(multivariate_ts)
         return multivariate_ts
+
+    """
+    Este método cria uma máscara para os valores nulos de uma série temporal univariada.
+    Ela é construida de tal forma que se multimplicada pela série temporal corrigida com
+    imputação de valores nulos, ela elimina os valores originais, mantendo apenas os
+    valores imputados
+    """
+    @staticmethod
+    def build_mask_serie(s: pd.Series) -> pd.Series:
+        mask = np.full(len(s), 1.0)
+        print(f'len(s) = {len(s)}, len(mask) = {len(mask)}')
+        previus = s[0]
+        for idx, v in enumerate(mask):
+            value = s[idx]
+            if not np.isnan(value): # operador == não funciona com NaN
+                mask[idx] = np.nan
+            if idx < len(mask) - 2 and np.isnan(s[idx + 1]):
+                mask[idx] = 1.0
+            if idx > 0 and not np.isnan(value) and np.isnan(previus):
+                mask[idx] = 1.0
+            previus = value
+
+        print(f'mask = {mask}')
+        print(f's    = {s.to_numpy()}')
+        return pd.Series(mask)
 
     ### ----------------------------- Métodos de IProvenanceable ----------------------------------
 
@@ -425,7 +526,7 @@ class TSStats:
         return str(self.summary_pt_br)
 
     # obtem a contagem de elementos na coluna `column_name`
-    def count(self, column_name:str) -> float:
+    def count(self, column_name:str) -> float | Scalar:
         # Extraindo o valor da quantidade de elementos na coluna `column_name`
         return self.summary_en_us.loc['count', column_name]
 
@@ -474,3 +575,49 @@ class TSStats:
     def amplitude(self, column_name:str) -> float:
         # Extraindo o valor da amplitude dos elementos na coluna `column_name`
         return self.max(column_name) - self.min(column_name)
+
+
+class TSPlotting:
+    def __init__(self, ts: TimeSerie, **kwargs):
+        self.ts = ts
+        self.__kwargs = kwargs
+
+    def line(self, **kwargs):
+        df = self.to_new_df()
+        # use `self.__kwargs` and `args` to decide what and how to plot
+        time_col = str(df.columns[0])
+        # ax = df.plot(kind='line', x='t', y=['y1', 'y2'])
+        for chave, valor in kwargs.items():
+            print(f'chave = {chave}: valor = {valor} -> tipo = {type(valor)}')
+
+        features = [ x for x in df.columns[1:] ]
+        ax = df.plot(kind='line', x=time_col, y=features, figsize=(12, 5), grid=True)
+
+        plt.show()
+
+    def scatter(self, **kwargs):
+        pass
+
+    def bar(self, **kwargs):
+        pass
+
+    def hist(self, **kwargs):
+        pass
+
+    def box(self, **kwargs):
+        pass
+
+    def stackplot(self, **kwargs):
+        pass
+
+    # Retorna uma cópia do Dataframe para ser usada nos gráficos sem afetar
+    # o objeto original.
+    def to_new_df(self) -> pd.DataFrame:
+        if self.ts.format == 'wide':
+            return self.ts.df.copy()
+        else:
+            # Atenção: o método to_wide() altera o objeto ts original, por isso faço uma deep-copy antes.
+            ts_copy = self.ts.copy()
+            ts_copy.to_wide()
+            result: TimeSerie = ts_copy
+            return result.df

@@ -13,6 +13,7 @@
 - [Installation](#installation)
 - [Testing](#testing)
 - [Publishing](#publishing)
+- [Graphics](#graphics)
 - [License](#license)
 
 ## Installation
@@ -31,24 +32,23 @@ pyright --level warning .
 ## Testing
 
 ```bash
-# Para configurar o ambiente de testes, define a variável de ambiente
-# T8S_WORKSPACE_DIR, por exemplo:
+# To configure the test environment, set the T8S_WORKSPACE_DIR environment variable, for example:
 export T8S_WORKSPACE_DIR=/Volumes/dev/t8s
 ```
 
 ![BDD](docs/bdd.png)
 
-Veja também [BDD](docs/behave.md)
+See too [BDD](docs/behave.md)
 
 ```batch
-# Para inspecionar a configuração do ambiente de testes:
+# To inspect the test environment configuration:
 hatch config show
 hatch clean
 hatch build
 # Edit your main.py code
 hatch run python3 main.py
 ./test-all.sh
-# Usando BDD com behave (https://behave.readthedocs.io/en/latest/)
+# Using BDD with behave (https://behave.readthedocs.io/en/latest/)
 rm logs/timeseries.log
 hatch run python -m behave --logging-level INFO --no-capture --no-capture-stderr --no-skipped features
 cat logs/timeseries.log
@@ -59,6 +59,17 @@ cat logs/timeseries.log
 ```bash
 hatch publish
 ```
+
+## Graphics
+
+Execute the examples below:
+
+```bash
+streamlit run  --server.headless true graphics/graph-01.py
+streamlit run  --server.headless true graphics/graph-02.py
+```bash
+
+And open the URI in browser
 
 ## License
 

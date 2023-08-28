@@ -34,11 +34,6 @@ def create_df_with_nans() -> pd.DataFrame:
     })
     return df
 
-def show_my_plot(df):
-    # df.set_index('t', inplace=True)
-    df.plot(x='t', y=['a', 'b'], figsize=(12, 5), grid=True)
-    plt.show()
-
 """
 Feature: Identify NaN values in multivariate and univariate Timeseries on wide format
   Value Statement:
@@ -89,9 +84,9 @@ def read_multivariate_ts(context):
 
     # Exibe um grafico de linha com os valores de a e b variando no tempo. NaNs não são exibidos.
     # A visualização permite ter uma ideia de como os dados estão distribuídos.
-    show_my_plot(ts3.df)
+    ts3.plot.line(figsize=(12, 5), grid=True)
 
-    # Gro a lista de univariadas e salvo no contexto
+    # Gero a lista de univariadas e salvo no contexto
     ts_list: list[TimeSerie] = ts3.split()
     context.ts_list = ts_list
     # Aqui temos context.ts3 (série multivariada) e context.ts_list (lista de séries univariadas)
@@ -106,6 +101,7 @@ def check_the_first_univariate_ts(context):
     # Verificando se existe NaNs na série temporal univariada
     assert first_univariate_ts.df['a'].isnull().values.any() == True, "There must be NaNs in the univariate Timeseries"
     context.first_univariate_ts = first_univariate_ts
+    first_univariate_ts.plot.line(figsize=(12, 5), grid=True)
 
 @then(u'I build a dataframe describing blocks of NaN values to use elsewhere')
 def build_dict_for_nans_blocks(context):
@@ -116,9 +112,9 @@ def build_dict_for_nans_blocks(context):
     logger.info(f'start_end_of_nan_blocks =\n{start_end_of_nan_blocks}')
     context.ts_nan_dict = start_end_of_nan_blocks
 
-@then(u'I check the result of NaNs blocks of univariate Timeseries.')
+@then(u'I check the result of NaNs blocks of univariate Timeseries')
 def check_the_result_of_nans_blocks(context):
-    logger.info(u'STEP: Then I check the result of NaNs blocks of univariate Timeseries.')
+    logger.info(u'STEP: Then I check the result of NaNs blocks of univariate Timeseries')
     assert context.ts_nan_dict is not None, "ts_nan_dict must not be None"
     ts_nan_dict = context.ts_nan_dict
     value: Series = ts_nan_dict['Value']
@@ -153,3 +149,15 @@ def check_the_result_of_nans_blocks(context):
     9    True       2     34
     10  False       4     36
     """
+
+@then(u'I can also add a column with the corrections indicated by the imputation and see the result graphically.')
+def add_imputation_column_and_show_graphically(context):
+    logger.info(u'STEP: Then I can also add a column with the corrections indicated by the imputation and see the result graphically.')
+    ts_list: list[TimeSerie] = context.ts_list
+    first_univariate_ts: TimeSerie = ts_list[0]
+    # Faço uma cópia da  Série Temporal original
+    # Adiciono uma coluna no Dataframe
+    # first_univariate_ts.plot.line(figsize=(12, 5), grid=True)
+    ts4 = first_univariate_ts.add_nan_mask(inplace=False, plot=True, method='interpolate')
+    context.ts4 = ts4
+    logger.info(f'ts4 =\n{ts4}')

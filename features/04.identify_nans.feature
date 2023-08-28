@@ -11,5 +11,6 @@ Feature: Identify NaN values in multivariate and univariate Timeseries on wide f
     Given that I read a multivariate Timeseries and convert to univariate timeseries list
     When I check the first univariate Timeseries from list for NaN values
     Then I build a dataframe describing blocks of NaN values to use elsewhere
-    And I check the result of NaNs blocks of univariate Timeseries.
+    And I check the result of NaNs blocks of univariate Timeseries
+    And I can also add a column with the corrections indicated by the imputation and see the result graphically.
     # Constraint: The Timeseries has no invalid values
