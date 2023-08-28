@@ -5,4 +5,5 @@ lixo*
 .ruff_cache
 .pytest_cache
 *.mp4
-
+.venv/
+requirements.txt
