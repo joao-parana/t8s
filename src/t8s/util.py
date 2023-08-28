@@ -4,6 +4,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 from pandas import Series
+from scipy.stats import zscore
 from t8s.ts import TimeSerie
 from t8s.ts_writer import TSWriter, WriteParquetFile
 from t8s.log_config import LogConfig
@@ -117,6 +118,27 @@ class Util:
         return (ret_all_s_e_nan_block, last_idx)
 
     @staticmethod
+    def detect_outliers(df: pd.DataFrame, col: str, method: str) -> list:
+        # Compute the z-score for the given column in the DataFrame and return a list of booleans indicating the outliers
+        values = df[col]
+
+        if method == 'zscore':
+            z_scores = zscore(values)
+            limit = 2.0
+            return [abs(z_score) > limit for z_score in z_scores]
+
+        elif method == 'iqr':
+            q25 = np.percentile(values, 25)
+            q75 = np.percentile(values, 75)
+            iqr = q75 - q25
+            lower_bound = q25 - 1.5 * iqr
+            upper_bound = q75 + 1.5 * iqr
+            return [value < lower_bound or value > upper_bound for value in values]
+
+        else:
+            raise ValueError(f'Unknown method: {method}')
+
+    @staticmethod
     def get_limits(df: pd.DataFrame, factor: int) -> pd.DataFrame:
         limits = pd.DataFrame(columns=df.columns)
         for col in df.columns:
@@ -156,5 +178,3 @@ class Util:
             max_factor_dict[col] = get_tuple_max_min_factors(df, col)
 
         return max_factor_dict
-
-
