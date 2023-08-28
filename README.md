@@ -14,6 +14,7 @@
 - [Testing](#testing)
 - [Publishing](#publishing)
 - [Graphics](#graphics)
+- [Virtual Environment](#virtual-environment)
 - [License](#license)
 
 ## Installation
@@ -65,11 +66,33 @@ hatch publish
 Execute the examples below:
 
 ```bash
-streamlit run  --server.headless true --theme.base light graphics/graph-01.py
-streamlit run  --server.headless true --theme.base light graphics/graph-02.py
+alias st='streamlit run  --server.headless true --theme.base light '
+st graphics/graph-01.py
+st graphics/graph-02.py
 ```bash
 
 And open the URI in browser
+
+## Virtual Environment
+
+To generate `requirements.txt` from zero, use this:
+
+```
+python3 -m venv .venv
+source .venv/Scripts/activate
+# Install packages
+python3 -m pip install --upgrade pip
+python3 -m pip install --upgrade pyright
+python3 -m pip install tensorflow tensorflow-metadata tensorflow-datasets
+python3 -m pip install -e .
+# Freeze instalation
+python3 -m pip freeze > requirements.txt
+# Do your job
+# . . .
+#
+deactivate
+rm -rf .venv/*
+```
 
 ## License
 
