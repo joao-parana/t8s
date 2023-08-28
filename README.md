@@ -69,7 +69,7 @@ Execute the examples below:
 alias st='streamlit run  --server.headless true --theme.base light '
 st graphics/graph-01.py
 st graphics/graph-02.py
-```bash
+```
 
 And open the URI in browser
 
@@ -77,7 +77,7 @@ And open the URI in browser
 
 To generate `requirements.txt` from zero, use this:
 
-```
+```bash
 python3 -m venv .venv
 source .venv/Scripts/activate
 # Install packages
