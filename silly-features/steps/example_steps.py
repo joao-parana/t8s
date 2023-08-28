@@ -132,7 +132,7 @@ Scenario: Plotting a time series using Pandas Dataframe
 @given(u'a dataset in the Parquet file representing a time series')
 def read_machine_13(context):
     logger.info(u'STEP: Given a dataset in the Parquet file representing a time series')
-    f = 'datasets/machine13.parquet'
+    f = 'datasets/machine13_01.parquet'
     df = pd.read_parquet(f)
     context.df = df
 
@@ -179,24 +179,14 @@ def do_plot(df: pd.DataFrame):
 
     plot_synthetic_data()
 
-    print(df.columns)
+    logger.info(f'df.columns = {df.columns}')
+    logger.info(df.info())
 
     # Criando o gráfico de linhas
-    df.plot(kind='line')
+    df.plot(x='TIMESTAMP', y=['T6021', 'T6022', 'T6023', 'T6024'], kind='line')
     plt.show()
 
-    # Renomeando as colunas
-    df.rename(columns={'index': 'TIMESTAMP', 'G13TE6021_I_UTML_PI09': 'T6021',
-        'G13TE6022_I_UTML_PI09': 'T6022', 'G13TE6023_I_UTML_PI09': 'T6023',
-        'G13TE6024_I_UTML_PI09': 'T6024'}, inplace=True)
-    df.info()
-    # Convertendo a coluna 'timestamp' para UTC
-    df['TIMESTAMP'] = df['TIMESTAMP'].dt.tz_convert('UTC').dt.tz_localize(None)
-    df.info()
-    # Configurando o índice do DataFrame como a coluna 'index'
-    df.set_index('TIMESTAMP', inplace=True)
-    df.info()
-
+    # Criando o gráfico de linhas com duas escalas em y
     fig, ax1 = plt.subplots(figsize=(12, 4)) # 12 é largura e 4 é altura do canvas
     # Plotando as colunas 'a' e 'b' no eixo y esquerdo
     ax1.plot(df.index, df['T6021'], color='red')
