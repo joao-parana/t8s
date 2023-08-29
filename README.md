@@ -80,7 +80,7 @@ For information on **caching** see [https://docs.streamlit.io/library/advanced-f
 ## Virtual Environment
 
 To generate `requirements.txt` from zero, with **Python 3.10** and
-**TensorFlow 2.10.1**, in Windows10 for GPU support, use this:
+**TensorFlow 2.10.1**, in Windows 10 for GPU support, use this:
 
 ```bash
 curl -O https://www.python.org/ftp/python/3.10.11/python-3.10.11-embed-amd64.zip
@@ -88,7 +88,7 @@ curl -O https://www.python.org/ftp/python/3.10.11/python-3.10.11-embed-amd64.zip
 alias python3.10=''
 /e/usr/local/python-3.10/python.exe -m venv .venv
 source .venv/Scripts/activate
-alias python3.10="$PWD/.venv/Scripts/python"
+alias python3.10=".venv/Scripts/python"
 # Install packages
 python3.10 -m pip install --upgrade pip
 python3.10 -m pip install --upgrade pyright
