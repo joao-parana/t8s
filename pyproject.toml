@@ -35,6 +35,7 @@ dependencies = [
   "scikit-learn",
   "datafusion",
   "altair",
+  "rich",
   "behave",
   "behave-pandas"
 ]

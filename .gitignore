@@ -7,3 +7,7 @@ lixo*
 *.mp4
 .venv/
 requirements.txt
+.ipynb_checkpoints
+notebooks/plot.html
+notebooks/plot.png
+

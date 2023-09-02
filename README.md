@@ -14,13 +14,14 @@
 - [Testing](#testing)
 - [Publishing](#publishing)
 - [Graphics](#graphics)
+- [Notebooks](#notebooks)
 - [Virtual Environment](#virtual-environment)
 - [License](#license)
 
 ## Installation
 
 ```bash
-pip install t8s
+python3 -m pip install t8s
 # Edit your code using t8s.ts.TimeSerie and others related classes
 ```
 
@@ -77,6 +78,13 @@ st graphics/graph-02.py
 And open the URI in browser
 
 For information on **caching** see [https://docs.streamlit.io/library/advanced-features/caching](https://docs.streamlit.io/library/advanced-features/caching)
+
+## Notebooks
+
+```bash
+python3 -m jupyter lab --no-browser --notebook-dir=notebooks
+```
+
 ## Virtual Environment
 
 To generate `requirements.txt` from zero, with **Python 3.10** and
