@@ -52,7 +52,7 @@ hatch run python3 main.py
 ./test-all.sh
 # Using BDD with behave (https://behave.readthedocs.io/en/latest/)
 rm logs/timeseries.log
-hatch run python -m behave --logging-level INFO --no-capture --no-capture-stderr --no-skipped features
+python -m behave --logging-level INFO --no-capture --no-capture-stderr --no-skipped features
 cat logs/timeseries.log
 ```
 
@@ -112,6 +112,11 @@ deactivate
 rm -rf .venv/*
 ```
 
+To list modules and versions instaled use:
+
+```bash
+python3 -m pip list | egrep 'keyring|keyrings.google-artifactregistry-auth|pyyaml|tomli|pyarrow|pandas|matplotlib|seaborn|streamlit|hvplot|holoviews|bokeh|jupyterlab|scikit-learn|datafusion|altair|rich|behave|behave-pandas'
+```
 ## License
 
 `t8s` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
