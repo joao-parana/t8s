@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import annotations
+from typing import Protocol
 from pathlib import Path
 from datetime import datetime
 import types
@@ -15,7 +16,8 @@ import pyarrow as pa         # type: ignore
 import pyarrow.parquet as pq # type: ignore
 from sklearn.base import TransformerMixin   # type: ignore
 from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler # type: ignore
-# from t8s.plot import TSPlotting
+from t8s.plot import TSPlotting
+from t8s.stats import TSStats
 import matplotlib.pyplot as plt
 from t8s.log_config import LogConfig
 
@@ -42,7 +44,7 @@ class ITimeSeriesProcessor(ABC):
         return False
 
     @abstractmethod
-    def to_wide(self) -> bool:
+    def to_wide(self) -> None:
         # Converte a série temporal para o formato Wide
         return False
 
@@ -510,114 +512,3 @@ class TimeSerie(ITimeSerie):
     @staticmethod
     def empty() -> Any:
         return TimeSerie(data='EMPTY', format='long', features_qty=0)
-
-class TSStats:
-    def __init__(self, df: pd.DataFrame):
-        assert isinstance(df, pd.DataFrame), "df must be a Pandas DataFrame"
-        # Obtendo o resumo estatístico do DataFrame
-        summary_en_us: pd.DataFrame = df.describe()
-        self.summary_en_us = summary_en_us
-        # Renomeando os índices do DataFrame resultante para PT_BR
-        summary_pt_br = summary_en_us.rename(index={'count': 'Contagem', 'mean': 'Média', 'std': 'Desvio padrão', 'min': 'Mínimo', '25%': 'Primeiro quartil', '50%': 'Mediana', '75%': 'Terceiro quartil', 'max': 'Máximo'})
-        self.summary_pt_br: pd.DataFrame = summary_pt_br
-        logger.info(f'summary_pt_br =\n{self.summary_pt_br}\n')
-
-    def __str__(self) -> str:
-        return str(self.summary_pt_br)
-
-    # obtem a contagem de elementos na coluna `column_name`
-    def count(self, column_name:str) -> float | Scalar:
-        # Extraindo o valor da quantidade de elementos na coluna `column_name`
-        return self.summary_en_us.loc['count', column_name]
-
-    # obtem a média dos elementos na coluna `column_name`
-    def mean(self, column_name:str) -> float:
-        # Extraindo o valor da média dos elementos na coluna `column_name`
-        return self.summary_en_us.loc['mean', column_name]
-
-    # obtem o desvio padrão dos elementos na coluna `column_name`
-    def std(self, column_name:str) -> float:
-        # Extraindo o valor do desvio padrão dos elementos na coluna `column_name`
-        return self.summary_en_us.loc['std', column_name]
-
-    # obtem o valor mínimo dos elementos na coluna `column_name`
-    def min(self, column_name:str) -> float:
-        # Extraindo o valor mínimo dos elementos na coluna `column_name`
-        return self.summary_en_us.loc['min', column_name]
-
-    # obtem o primeiro quartil dos elementos na coluna `column_name`
-    def q1(self, column_name:str) -> float:
-        # Extraindo o valor do primeiro quartil dos elementos na coluna `column_name`
-        return self.summary_en_us.loc['25%', column_name]
-
-
-    # obtem a mediana dos elementos na coluna `column_name`
-    def median(self, column_name:str) -> float:
-        # Extraindo o valor da mediana dos elementos na coluna `column_name`
-        return self.summary_en_us.loc['50%', column_name]
-
-    # obtem o segundo quartil dos elementos na coluna `column_name`
-    def q2(self, column_name:str) -> float:
-        # Extraindo o valor do segundo quartil dos elementos na coluna `column_name`
-        return self.median(column_name)
-
-    # obtem o terceiro quartil dos elementos na coluna `column_name`
-    def q3(self, column_name:str) -> float:
-        # Extraindo o valor do terceiro quartil dos elementos na coluna `column_name`
-        return self.summary_en_us.loc['75%', column_name]
-
-    # obtem o valor máximo dos elementos na coluna `column_name`
-    def max(self, column_name:str) -> float:
-        # Extraindo o valor máximo dos elementos na coluna `column_name`
-        return self.summary_en_us.loc['max', column_name]
-
-    # obtem o valor da amplitude dos elementos na coluna `column_name`
-    def amplitude(self, column_name:str) -> float:
-        # Extraindo o valor da amplitude dos elementos na coluna `column_name`
-        return self.max(column_name) - self.min(column_name)
-
-
-class TSPlotting:
-    def __init__(self, ts: TimeSerie, **kwargs):
-        self.ts = ts
-        self.__kwargs = kwargs
-
-    def line(self, **kwargs):
-        df = self.to_new_df()
-        # use `self.__kwargs` and `args` to decide what and how to plot
-        time_col = str(df.columns[0])
-        # ax = df.plot(kind='line', x='t', y=['y1', 'y2'])
-        for chave, valor in kwargs.items():
-            print(f'chave = {chave}: valor = {valor} -> tipo = {type(valor)}')
-
-        features = [ x for x in df.columns[1:] ]
-        ax = df.plot(kind='line', x=time_col, y=features, figsize=(12, 5), grid=True)
-
-        plt.show()
-
-    def scatter(self, **kwargs):
-        pass
-
-    def bar(self, **kwargs):
-        pass
-
-    def hist(self, **kwargs):
-        pass
-
-    def box(self, **kwargs):
-        pass
-
-    def stackplot(self, **kwargs):
-        pass
-
-    # Retorna uma cópia do Dataframe para ser usada nos gráficos sem afetar
-    # o objeto original.
-    def to_new_df(self) -> pd.DataFrame:
-        if self.ts.format == 'wide':
-            return self.ts.df.copy()
-        else:
-            # Atenção: o método to_wide() altera o objeto ts original, por isso faço uma deep-copy antes.
-            ts_copy = self.ts.copy()
-            ts_copy.to_wide()
-            result: TimeSerie = ts_copy
-            return result.df
