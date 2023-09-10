@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
-import altair as alt
+import altair as alt # type: ignore
 import pandas as pd
 import numpy as np
 from sklearn.base import TransformerMixin   # type: ignore
@@ -87,7 +87,8 @@ match option_selected.split(' - ')[0]:
                 chart_data,
                 x = 't',
                 y = ['a', 'a_nan'],
-                color = ['#5555FF', '#FF0000']  # NaNs em vermelho. O atributo color é opcional
+                # NaNs em vermelho. O atributo color é opcional
+                color = ['#5555FF', '#FF0000'] # type: ignore
             )
             assert isinstance(chart_1, DeltaGenerator)
 
