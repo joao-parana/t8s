@@ -1,5 +1,6 @@
 from __future__ import annotations
-from datetime import datetime
+from datetime import datetime, timezone
+
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
@@ -33,7 +34,8 @@ option_selected: str = ""
 option_selected = st.radio('Escolha dentre os 3 exemplos abaixo:',[
     '1 - Imputação de valores ausentes',
     '2 - Analise de uma máquina rotativa',
-    '3 - Outro exemplo'
+    '3 - Outro exemplo de gráfico',
+    '4 - Exibindo uma série Temporal',
 ]) or "0 - None"
 print(f'option_selected = {option_selected}, type(option_selected) = {type(option_selected)}')
 
@@ -101,7 +103,7 @@ match option_selected.split(' - ')[0]:
         Tempo médio de {std} milissegundos para construir o gráfico após {session_state.counter1} execuções
         """)
     case "2":
-        """
+        st.markdown("""
         #### Analise de uma máquina rotativa
 
         O gráfico abaixo mostra duas features de um dataset com dados de dois sensores instalados
@@ -113,7 +115,7 @@ match option_selected.split(' - ')[0]:
         conseguinte, aumentando a sua temperatura em dois pontos específicos.
 
         Uma analise criteriosa dos dados pode ajudar a identificar a causa raiz do problema.
-        """
+        """)
         start = datetime.now()
         @st.cache_resource()
         def build_chart_2(cached:int):
@@ -136,6 +138,9 @@ match option_selected.split(' - ')[0]:
         Tempo médio de {std} milissegundos para construir o gráfico após {session_state.counter2} execuções
         """)
     case "3":
+        st.markdown("""
+        #### Exemplo de histograma multivariado
+        """)
         start = datetime.now()
         @st.cache_resource()
         def build_chart_3(cached:int):
@@ -164,3 +169,38 @@ match option_selected.split(' - ')[0]:
         st.markdown(f"""
         Tempo médio de {std} milissegundos para construir o gráfico após {session_state.counter3} execuções
         """)
+    case "4":
+        st.markdown("""
+        #### Exibindo os dados de uma série Temporal
+
+        Valores máximos de cada coluna aparecem hachurados em amarelo
+        """)
+        col1, col2 = st.columns(2)
+        df = other_data.style.highlight_max(axis=0)
+        with col1:
+            st.markdown('###### VIsualize os dados da série temporal')
+            st.dataframe(df)
+        with col2:
+            st.markdown('###### Outras informações')
+            x = st.slider('x')  # <- this is a widget
+            st.write(x, 'squared is', x * x)
+            st.text_input("Entre duas datas separadas por virgula", key="interval")
+            # st.write(f'st.session_state.interval = {st.session_state.interval.split(",")}')
+            interval = st.session_state.interval.split(",")
+            print(f'interval = {interval}')
+            data1 = data2 = None
+            if len(interval) > 0:
+                start = interval[0]
+                if not (start == '' or start == None):
+                    data1 = datetime.fromisoformat(start).replace(
+                        tzinfo=timezone.utc).replace(microsecond=0)
+                    if False:
+                        data1.replace(hour=0, minute=0, second=0)
+            if len(interval) > 1:
+                end = interval[1]
+                data2 = datetime.fromisoformat(end).replace(
+                    tzinfo=timezone.utc).replace(microsecond=0)
+                if False:
+                    data2.replace(hour=0, minute=0, second=0)
+                st.write(f'start = {data1}, end = {data2}')
+                st.write(f'tipos de dado: {type(data1)}, {type(data2)}')
