@@ -85,6 +85,12 @@ For information on **caching** see [https://docs.streamlit.io/library/advanced-f
 python3 -m jupyter lab --no-browser --notebook-dir=notebooks
 ```
 
+```bash
+python3 -m pip install --upgrade jupyter-packaging ipywidgets
+# clone bqplot repository and install it for development
+python3 -m pip list | egrep 'ipywidgets|jupyterlab|bqplot|pandas|numpy|jupyter_packaging'
+```
+
 ## Virtual Environment
 
 To generate `requirements.txt` from zero, with **Python 3.10** and
@@ -115,8 +121,9 @@ rm -rf .venv/*
 To list modules and versions instaled use:
 
 ```bash
-python3 -m pip list | egrep 'keyring|keyrings.google-artifactregistry-auth|pyyaml|tomli|pyarrow|pandas|matplotlib|seaborn|streamlit|hvplot|holoviews|bokeh|jupyterlab|scikit-learn|datafusion|altair|rich|behave|behave-pandas'
+python3 -m pip list | egrep 'keyring|keyrings.google-artifactregistry-auth|pyyaml|tomli|pyarrow|pandas|matplotlib|seaborn|streamlit|hvplot|holoviews|bokeh|jupyterlab|scikit-learn|datafusion|altair|rich|behave|behave-pandas|ipywidgets|bqplot|numpy|jupyter_packaging'
 ```
+
 ## License
 
 `t8s` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
