@@ -1,25 +1,30 @@
 import os
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from pandas import Series
 from scipy.stats import zscore
-from t8s.ts import TimeSerie
-from t8s.ts_writer import TSWriter, WriteParquetFile
+
 from t8s.log_config import LogConfig
-from t8s.ts_builder import TSBuilder, ReadParquetFile # , ReadCsvFile
+from t8s.ts import TimeSerie
+from t8s.ts_builder import ReadParquetFile, TSBuilder  # , ReadCsvFile
+from t8s.ts_writer import TSWriter, WriteParquetFile
 
 # to consider inf and -inf to be “NA” in computations, you can set:
 pd.options.mode.use_inf_as_na = True
 
-logger = LogConfig().getLogger()
+logger = LogConfig().get_logger()
+
 
 class Util:
     @staticmethod
     def to_parquet(ts: TimeSerie, path_ts: Path):
         # def write_ts_to_parquet_file(ts, parquet_path, filename: str):
-        logger.debug(f'Grava a série temporal (formato {ts.format}) em um arquivo parquet {path_ts}')
+        logger.debug(
+            f'Grava a série temporal (formato {ts.format}) em um arquivo parquet {path_ts}'
+        )
         ctx = TSWriter(WriteParquetFile())
         logger.debug("Client: Strategy was seted to write Parquet file.")
         ctx.write(Path(path_ts), ts)
@@ -46,7 +51,9 @@ class Util:
         DATA_PATH = os.path.join(workspace_dir, 'data')
         PARQUET_DATA_PATH = os.path.join(DATA_PATH, 'parquet')
         parquet_input_file = os.path.join(PARQUET_DATA_PATH, filename)
-        logger.debug(f'parquet_input_file: {parquet_input_file}, {type(parquet_input_file)}')
+        logger.debug(
+            f'parquet_input_file: {parquet_input_file}, {type(parquet_input_file)}'
+        )
         path = Path(parquet_input_file)
         logger.debug(f'{path},  {type(path)}')
         ts = TimeSerie.empty()
@@ -63,7 +70,9 @@ class Util:
     # se o valor é nulo ou não, e a segunda com a quantidade de valores consecutivos iguais.
     # Valor: True se o valor é nulo, False se não é nulo
     @staticmethod
-    def get_null_and_notnull_consecutive_counts(df_to_process: pd.DataFrame, col_name:str) -> pd.DataFrame:
+    def get_null_and_notnull_consecutive_counts(
+        df_to_process: pd.DataFrame, col_name: str
+    ) -> pd.DataFrame:
         df_ret = df_to_process[col_name].isna()
         # print('df_ret:\n',  df_ret)
         # Obtendo os grupos consecutivos de valores iguais
@@ -74,17 +83,24 @@ class Util:
         # Obtendo os valores dos grupos
         group_values = df_ret.groupby(groups).first()
         # Juntando as informações em um único DataFrame
-        result = pd.DataFrame({'Value': group_values, 'Counts': counts,'Start': inicio[0]})
+        result = pd.DataFrame(
+            {'Value': group_values, 'Counts': counts, 'Start': inicio[0]}
+        )
         result.reset_index(drop=True, inplace=True)
         return result
 
     @staticmethod
     def get_numeric_column_names(df) -> list:
-        ret:list = []
+        ret: list = []
         for idx, c in enumerate(df.columns):
-            if (df[c].dtype == float or df[c].dtype == int or
-            df[c].dtype == np.float64 or df[c].dtype == np.int64 or
-            df[c].dtype == np.float32 or df[c].dtype == np.int32):
+            if (
+                df[c].dtype == float
+                or df[c].dtype == int
+                or df[c].dtype == np.float64
+                or df[c].dtype == np.int64
+                or df[c].dtype == np.float32
+                or df[c].dtype == np.int32
+            ):
                 ret.append(c)
         ret.sort()
         return ret
@@ -101,11 +117,15 @@ class Util:
             return None
         else:
             logger.debug('Primeiro elemento da série não é NaN')
-            null_and_notnull_counts = Util.get_null_and_notnull_consecutive_counts(df, col)
+            null_and_notnull_counts = Util.get_null_and_notnull_consecutive_counts(
+                df, col
+            )
             return null_and_notnull_counts
 
     @staticmethod
-    def identify_all_start_and_end_of_nan_block(df: pd.DataFrame) -> tuple[dict[str, pd.DataFrame], int]:
+    def identify_all_start_and_end_of_nan_block(
+        df: pd.DataFrame,
+    ) -> tuple[dict[str, pd.DataFrame], int]:
         last_idx = 0
         ret_all_s_e_nan_block = {}
         cols = Util.get_numeric_column_names(df)
@@ -150,7 +170,9 @@ class Util:
 
     @staticmethod
     def get_min_max_variation_factors(df: pd.DataFrame) -> dict[str, tuple[int, int]]:
-        max_factor_dict = {} # Key: col_name, value: tuple(min, max) with the min and max factor
+        max_factor_dict = (
+            {}
+        )  # Key: col_name, value: tuple(min, max) with the min and max factor
         for col in df.columns:
             max_factor_dict[col] = 0
 

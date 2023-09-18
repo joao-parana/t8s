@@ -133,6 +133,8 @@ ignore = [
   # Ignore imported but unused - Ruff F401
   "F401",
   "Q000",
+  # `print` found Ruff T201
+  "T201",
 ]
 unfixable = [
   # Don't touch unused imports

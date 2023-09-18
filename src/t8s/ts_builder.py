@@ -2,17 +2,19 @@
 
 # from __future__ import annotations usado apenas nas versões anteriores a 3.7
 from abc import ABC, abstractmethod
-from typing import Any, Optional
-from pathlib import Path
 from datetime import datetime
-from t8s.log_config import LogConfig
-from t8s.ts import TimeSerie  # , ITimeSerie, ITimeSeriesProcessor, IProvenancable
+from pathlib import Path
+from typing import Any, Optional
+
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-logger = LogConfig().getLogger()
+from t8s.log_config import LogConfig
+from t8s.ts import TimeSerie  # , ITimeSerie, ITimeSeriesProcessor, IProvenancable
+
+logger = LogConfig().get_logger()
 
 
 class ReadStrategy(ABC):
@@ -66,7 +68,9 @@ class TSBuilder:
 
         self._strategy = strategy
 
-    def build_from_file(self, path: Path, select_features: list[str] | None = None) -> TimeSerie:
+    def build_from_file(
+        self, path: Path, select_features: list[str] | None = None
+    ) -> TimeSerie:
         # TODO: garantir que a primeira coluna seja um Timestamp quando o formato for long ou wide
 
         """
@@ -106,14 +110,18 @@ class TSBuilder:
 
 
 class ReadParquetFile(ReadStrategy):
-    def do_read(self, file_path: Path, select_features: list[str] | None = None) -> Optional['TimeSerie']:
+    def do_read(
+        self, file_path: Path, select_features: list[str] | None = None
+    ) -> Optional['TimeSerie']:
         # logger.debug('Using ReadParquetFile strategy to read data from: ' + str(data))
         assert isinstance(file_path, Path), "path must be a Path object"
         assert (str(file_path)).endswith('.parquet'), "path must be a Path object"
         # Lê os metadados do arquivo Parquet
         metadata: pq.FileMetaData = pq.read_metadata(file_path)
         # logger.debug('\nParquet file metadata:\n' + str(metadata.to_dict()) + '\n' + str(metadata.metadata))
-        assert isinstance(metadata, pq.FileMetaData), "metadata must be a pq.FileMetaData object"
+        assert isinstance(
+            metadata, pq.FileMetaData
+        ), "metadata must be a pq.FileMetaData object"
         dict_meta: dict = metadata.to_dict()
         # logger.debug('\n-------------------------------')
         # logger.debug('created_by: ' + str(dict_meta['created_by']))
@@ -134,9 +142,9 @@ class ReadParquetFile(ReadStrategy):
         # print('metadata.column_names', metadata.column_names)
         # Imprime as estatísticas do arquivo Parquet
         # if metadata.num_row_groups > 0:
-            # for idx in range(metadata.num_columns):
-                # logger.debug(metadata.row_group(0).column(idx).statistics)
-                # logger.debug('-----------------------------')
+        # for idx in range(metadata.num_columns):
+        # logger.debug(metadata.row_group(0).column(idx).statistics)
+        # logger.debug('-----------------------------')
         # # logger.debug(metadata.row_group(0).column(0).statistics)
         # Leia o arquivo Parquet
         parquet_file = pq.ParquetFile(file_path)

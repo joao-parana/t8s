@@ -1,28 +1,38 @@
 import os
 import sys
 from datetime import datetime
+from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING, log
 from pathlib import Path
-from t8s.log_config import LogConfig
-from behave import given, when, then, model, step # type: ignore
-from behave.model import Feature, Scenario # type: ignore
-from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL, log
-from behave import use_step_matcher # type: ignore
-from t8s.util import Util
+
+from behave import (  # type: ignore
+    given,
+    model,
+    step,
+    then,
+    use_step_matcher,  # type: ignore
+    when,
+)
+from behave.model import Feature, Scenario  # type: ignore
+
 import t8s
+from t8s.log_config import LogConfig
+from t8s.util import Util
 
 # use_step_matcher("re")
 use_step_matcher("parse")
 
 LogConfig().initialize_logger(INFO)
-logger = LogConfig().getLogger()
+logger = LogConfig().get_logger()
 print(f'\n\n• The script "environment.py" was loaded ...\n')
 print(f'\n• The python version used is "{sys.version_info}"\n')
 print(f'\n• t8s package version is {t8s.__version__}\n\n')
 
-def list_files(prefix: str, path:Path):
+
+def list_files(prefix: str, path: Path):
     l: list = Util.list_all_files(path)
     for item in l:
         logger.info(prefix + item)
+
 
 def before_all(context):
     # Inicializa o contexto do behave
@@ -33,6 +43,7 @@ def before_all(context):
     context.list_files(f'before_all: ', Path('/tmp/'))
     logger.info(f'-------------------------------------------------')
 
+
 # HOOK
 def before_feature(context, feature: Feature):
     # Inicializa o status no contexto
@@ -41,6 +52,7 @@ def before_feature(context, feature: Feature):
     logger.info(f'-------------------------------------------------')
     logger.info(f'vars(feature): {vars(feature)}')
     logger.info(f'-------------------------------------------------')
+
 
 # HOOK
 def before_scenario(context, scenario: Scenario):

@@ -1,29 +1,41 @@
 import types
-import yaml
-from pathlib import Path
 from datetime import datetime
+from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq  # type: ignore
+import yaml
+
 from t8s import get_sample_df
+from t8s.log_config import LogConfig
 from t8s.ts import TimeSerie
 from t8s.ts_writer import TSWriter, WriteParquetFile
-import pyarrow.parquet as pq         # type: ignore
 
+logger = LogConfig().get_logger()
 
-from t8s.log_config import LogConfig
-from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
-logger = LogConfig().getLogger()
 
 def check_schema(ts, parquet_file: Path, types: list[type]):
     """
     Verifica o schema do arquivo parquet gerado e os tipos dos dados de cada coluna
     contra os tipos esperados encontrados no Dataframe que é parte da TimeSerie.
     """
-    logger.debug(f'Verificando os tipos dos dados gravados no arquivo parquet {parquet_file} contra os tipos esperados:', types)
+    logger.debug(
+        f'Verificando os tipos dos dados gravados no arquivo parquet {parquet_file} contra os tipos esperados:',
+        types,
+    )
     # Lê os metadados do arquivo Parquet
     metadata: pq.FileMetaData = pq.read_metadata(parquet_file)
-    logger.debug('\nParquet file metadata:\n' + str(metadata.to_dict()) + '\n' + str(metadata.metadata))
-    assert isinstance(metadata, pq.FileMetaData), "metadata must be a pq.FileMetaData object"
+    logger.debug(
+        '\nParquet file metadata:\n'
+        + str(metadata.to_dict())
+        + '\n'
+        + str(metadata.metadata)
+    )
+    assert isinstance(
+        metadata, pq.FileMetaData
+    ), "metadata must be a pq.FileMetaData object"
     dict_meta: dict = metadata.to_dict()
     logger.debug('\n-------------------------------')
     logger.debug('created_by: ' + str(dict_meta['created_by']))
@@ -31,7 +43,9 @@ def check_schema(ts, parquet_file: Path, types: list[type]):
     format = metadata.metadata[b'format'].decode()
     features = metadata.metadata[b'features'].decode()
     logger.info('format: ' + format + ' type(format) ' + str(type(format)))
-    logger.info('features: ' + str(features) + ' type(features): ' + str(type(features)))
+    logger.info(
+        'features: ' + str(features) + ' type(features): ' + str(type(features))
+    )
     assert isinstance(format, str), "format metadada must be a string"
     assert isinstance(features, str), "features metadada must be a string"
     features_qty = int(features)
@@ -39,7 +53,12 @@ def check_schema(ts, parquet_file: Path, types: list[type]):
     # logger.debug('format', dict_meta['format'])
     # logger.debug('features', dict_meta['features'])
     # Imprime o esquema do arquivo Parquet
-    logger.debug('\ntype(metadata.schema): ' + str(type(metadata.schema)) + '\t' + str(metadata.schema))
+    logger.debug(
+        '\ntype(metadata.schema): '
+        + str(type(metadata.schema))
+        + '\t'
+        + str(metadata.schema)
+    )
     # Imprime as colunas do arquivo Parquet
     # logger.debug('metadata.column_names', metadata.column_names)
     # Imprime as estatísticas do arquivo Parquet
@@ -57,13 +76,16 @@ def check_schema(ts, parquet_file: Path, types: list[type]):
     logger.debug('TimeSerie types expected:', ', '.join([str(t) for t in types]))
     pass
 
+
 def test_to_parquet():
     TimeSerie.empty()
     # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e velocidade
 
     number_of_records = 4
-    time_interval = 1 # hour
-    df, last_ts = get_sample_df(number_of_records, datetime(2022, 1, 1, 0, 0, 0), time_interval)
+    time_interval = 1  # hour
+    df, last_ts = get_sample_df(
+        number_of_records, datetime(2022, 1, 1, 0, 0, 0), time_interval
+    )
     columns_types = [type(df[col][0]) for col in df.columns]
     logger.debug('columns_types =', columns_types)
     # data = df.to_dict()
@@ -76,7 +98,9 @@ def test_to_parquet():
     # Grava a série temporal em parquet
     path_str: str = 'data/parquet/ts_01.parquet'
     path = Path(path_str)
-    logger.debug(f'Grava a série temporal (formato {ts.format}) em um arquivo parquet {path}')
+    logger.debug(
+        f'Grava a série temporal (formato {ts.format}) em um arquivo parquet {path}'
+    )
     ctx = TSWriter(WriteParquetFile())
     logger.debug("Client: Strategy was seted to write Parquet file.")
     ctx.write(Path(path_str), ts)
@@ -84,6 +108,7 @@ def test_to_parquet():
     check_schema(ts, path, [datetime, np.float32, np.int32])
     logger.info('FIM')
 
+
 if __name__ == "__main__":
-    LogConfig().initialize_logger(DEBUG, log_file = 'tests/to_parquet.log')
+    LogConfig().initialize_logger(DEBUG, log_file='tests/to_parquet.log')
     test_to_parquet()

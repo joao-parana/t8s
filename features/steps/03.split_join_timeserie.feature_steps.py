@@ -1,22 +1,23 @@
 import os
-from pathlib import Path
 from datetime import datetime
+from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from t8s import get_sample_df
-from t8s.log_config import LogConfig
-from t8s.util import Util
-from t8s.io import IO
-from t8s.ts import TimeSerie
-from t8s.ts_writer import TSWriter, WriteParquetFile
-from t8s.ts_builder import TSBuilder
-from t8s.ts_builder import ReadParquetFile
-from behave import given, when, then, use_step_matcher, step # type: ignore
-from behave.model import Table # type: ignore
-from behave_pandas import table_to_dataframe, dataframe_to_table # type: ignore
-from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
+from behave import given, step, then, use_step_matcher, when  # type: ignore
+from behave.model import Table  # type: ignore
+from behave_pandas import dataframe_to_table, table_to_dataframe  # type: ignore
 
-logger = LogConfig().getLogger()
+from t8s import get_sample_df
+from t8s.io import IO
+from t8s.log_config import LogConfig
+from t8s.ts import TimeSerie
+from t8s.ts_builder import ReadParquetFile, TSBuilder
+from t8s.ts_writer import TSWriter, WriteParquetFile
+from t8s.util import Util
+
+logger = LogConfig().get_logger()
 
 """
 Feature: Convert a multivariate Timeseries to list of univariate Timeseries and vice versa
@@ -30,9 +31,14 @@ Value Statement:
     Given that I have a T8S_WORKSPACE_DIR and a long format time series persisted to a Parquet file
 """
 
-@given(u'that I have a T8S_WORKSPACE_DIR and a long format time series persisted to a Parquet file')
+
+@given(
+    u'that I have a T8S_WORKSPACE_DIR and a long format time series persisted to a Parquet file'
+)
 def background(context):
-    logger.info(u'STEP: Given that I have a T8S_WORKSPACE_DIR and a long format time series persisted to a Parquet file')
+    logger.info(
+        u'STEP: Given that I have a T8S_WORKSPACE_DIR and a long format time series persisted to a Parquet file'
+    )
 
     if context.status == 'data directory empty':
         context.create_sample_ts_and_save_as_parquet(context)
@@ -48,6 +54,7 @@ def background(context):
     logger.info(f'-------------------------------------------------')
     # A forma de passar estes dados para os steps seguintes é usando o objeto context
 
+
 """
   Scenario: Conversion of Timeseries types ['univariate', 'multivariate'] for use in different situations
     Given that I create a Timeseries using the selected parquet file in the T8S_WORKSPACE/data/parquet directory
@@ -58,10 +65,15 @@ def background(context):
     # Constraint: The Timeseries has no invalid values
 """
 
-@given(u'that I create a Timeseries using the selected parquet file in the T8S_WORKSPACE/data/parquet directory')
+
+@given(
+    u'that I create a Timeseries using the selected parquet file in the T8S_WORKSPACE/data/parquet directory'
+)
 def create_time_serie_from_parquet_file(context):
     file_name_of_time_series_in_long_format = 'ts_long_01.parquet'
-    path_str: str = str(context.PARQUET_PATH) + '/' + file_name_of_time_series_in_long_format
+    path_str: str = (
+        str(context.PARQUET_PATH) + '/' + file_name_of_time_series_in_long_format
+    )
     path = Path(path_str)
     logger.debug('path: ' + str(path))
     ctx = TSBuilder(ReadParquetFile())
@@ -72,22 +84,32 @@ def create_time_serie_from_parquet_file(context):
     context.ts1 = ts1
     context.list_files(f'create_time_serie_from_parquet_file() \n', context)
 
+
 @when(u'I convert Timeseries from long format to wide format and check the convertion')
 def convert_time_serie_from_long_to_wide_format(context):
     logger.info(f'context.ts1 BEFORE -> \n{str(context.ts1.format)}')
     ts1: TimeSerie = context.ts1
     ts1.to_wide()
-    logger.info(f'context.ts1 AFTER  -> \n{str(context.ts1.format)}\n{str(context.ts1.df.head())}')
+    logger.info(
+        f'context.ts1 AFTER  -> \n{str(context.ts1.format)}\n{str(context.ts1.df.head())}'
+    )
 
-@then(u'I can convert the Timeseries from multivariate to a list of univariate Timeseries')
+
+@then(
+    u'I can convert the Timeseries from multivariate to a list of univariate Timeseries'
+)
 def convert_time_serie_from_multivariate_to_list_of_univariate(context):
     # logger.info(f'context.ts1 BEFORE -> \n{str(context.ts1)}')
     pass
 
-@then(u'I convert the list of univariate Timeseries into a single multivariate Timeseries')
+
+@then(
+    u'I convert the list of univariate Timeseries into a single multivariate Timeseries'
+)
 def convert_list_of_univariate_to_multivariate(context):
     # logger.info(f'context.ts1 BEFORE -> \n{str(context.ts1)}')
     pass
+
 
 @then(u'I check the result.')
 def check_result(context):

@@ -29,19 +29,23 @@ class LogConfig(metaclass=LogConfigMeta):
         self.logger = None
         self.initialize_logger(level=logging.INFO)
 
-    def initialize_logger(self, level=logging.INFO, log_file: str = f'{PROJECT_ROOT}/logs/timeseries.log'):
+    def initialize_logger(
+        self, level=logging.INFO, log_file: str = f'{PROJECT_ROOT}/logs/timeseries.log'
+    ):
         my_global_logger = logging.getLogger(__name__)
         my_global_logger.setLevel(level)
         # logger_handler = RotatingFileHandler('timeseries.log', maxBytes=1_000_000, backupCount=10)
         logger_handler = logging.FileHandler(log_file, mode='w')
         # logger_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s | %(message)s")) #"%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(funcName)s(%(lineno)d) - %(message)s"
         logger_handler.setFormatter(
-            logging.Formatter("%(levelname)s - %(filename)s - %(funcName)s | %(message)s")
+            logging.Formatter(
+                "%(levelname)s - %(filename)s - %(funcName)s | %(message)s"
+            )
         )  # "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(funcName)s(%(lineno)d) - %(message)s"
         my_global_logger.handlers.clear()
         my_global_logger.addHandler(logger_handler)
         self.logger = my_global_logger
         self.logger.info('self.logger = ' + str(self.logger))
 
-    def getLogger(self) -> Logger | Any:
+    def get_logger(self) -> Logger | Any:
         return self.logger

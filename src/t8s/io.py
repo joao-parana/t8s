@@ -1,28 +1,28 @@
 # -*- coding: utf-8 -*-
 
-from pathlib import Path
-from datetime import date, datetime
-import gzip
 import csv
-import os
 import gc
-import yaml
+import gzip
+import os
 from abc import ABC, abstractmethod
-from typing import Any, Optional, TypeVar, TypeAlias
+from datetime import date, datetime
+from pathlib import Path
+from typing import Any, Optional, TypeAlias, TypeVar
 
 import numpy as np
 import pandas as pd
-import pyarrow as pa         # type: ignore
-import pyarrow.parquet as pq # type: ignore
+import pyarrow as pa  # type: ignore
+import pyarrow.parquet as pq  # type: ignore
+import yaml
 
 from t8s.log_config import LogConfig
 
-logger = LogConfig().getLogger()
+logger = LogConfig().get_logger()
 
 import re
 from enum import Enum
-from t8s import get_numeric_regex
-from t8s import PathStr
+
+from t8s import PathStr, get_numeric_regex
 
 NULL_PATH: Path = Path('/NullPathObject')
 
@@ -30,6 +30,7 @@ NULL_PATH: Path = Path('/NullPathObject')
 class IO:
     all_columns_with_errors: dict[str, str] = {}
     all_tokens_with_errors: dict[str, str] = {}
+
     @staticmethod
     def add_column_name_and_invalid_token(column: str, token: str) -> None:
         # Atualize o dicionário xpto
@@ -101,14 +102,20 @@ class IO:
                     raise ValueError(msg)
 
         if len(IO.all_columns_with_errors.keys()) > 0:
-            logger.debug('Erros de tokens inválidos encontrados em campos numéricos dos arquivos CSV')
+            logger.debug(
+                'Erros de tokens inválidos encontrados em campos numéricos dos arquivos CSV'
+            )
             for error in IO.all_columns_with_errors.keys():
                 logger.debug(f'{error}')
-        logger.debug(f'Este método __check_csv_schema() demorou: {datetime.now()-start_at}')
+        logger.debug(
+            f'Este método __check_csv_schema() demorou: {datetime.now()-start_at}'
+        )
         return (types, type_map)
 
     @staticmethod
-    def get_column_names_and_types_from_csv_file(csv_file: PathStr) -> tuple[list[str], list[type], dict[str, type]]:
+    def get_column_names_and_types_from_csv_file(
+        csv_file: PathStr,
+    ) -> tuple[list[str], list[type], dict[str, type]]:
         # Define os tipos de dados das colunas assumindo a primeira como pd.Timestamp e a ultima como target
         # e todas as outras como features numéricas. Outros caso de uso não são tratados no momento.
         # Verifica se é arquivo CSV no formato texto, sem compactação e com a extensão .csv
@@ -147,16 +154,24 @@ class IO:
         return column_names, column_type_list, column_type_dict
 
     @staticmethod
-    def check_data_types_in_csv_file(csv_file: PathStr) -> tuple[list[type], dict[str, type]]:
+    def check_data_types_in_csv_file(
+        csv_file: PathStr,
+    ) -> tuple[list[type], dict[str, type]]:
         # TODO: No caso em que a primeira linha do CSV não tenha a definição dos nomes das colunas
         #       podemos usar o parâmetro header=None para que o Pandas crie nomes para as colunas.
         # -----------------------------------------------------------------------------------------------
-        column_names, column_type_list, column_type_dict = IO.get_column_names_and_types_from_csv_file(csv_file)
+        (
+            column_names,
+            column_type_list,
+            column_type_dict,
+        ) = IO.get_column_names_and_types_from_csv_file(csv_file)
 
         # Lê o arquivo CSV
         nan_values_tokens = ['Bad', 'Missing', 'Configure', 'nan', 'NaN']
-        parse_dates: list[int] = [1] # Assumindo que a coluna 1 é a coluna de timestamp
-        df = pd.read_csv(Path(csv_file)) # , parse_dates=parse_dates, na_values=nan_values_tokens
+        parse_dates: list[int] = [1]  # Assumindo que a coluna 1 é a coluna de timestamp
+        df = pd.read_csv(
+            Path(csv_file)
+        )  # , parse_dates=parse_dates, na_values=nan_values_tokens
 
         # Valida os tipos de dados
         def check_number_regex(x: Any) -> bool:
@@ -173,7 +188,9 @@ class IO:
                 numeric_values = df[col_name].apply(check_number_regex).all()
                 # logger.debug(df[col_name])
                 if not numeric_values:
-                    logger.error(f"A coluna {col_name} não contém apenas valores do tipo {col_type}")
+                    logger.error(
+                        f"A coluna {col_name} não contém apenas valores do tipo {col_type}"
+                    )
 
         # Delete the used DataFrame
         del df
@@ -186,14 +203,19 @@ class IO:
     # de arquivos CSV por convenção. O método retorna um Boolean que indica se
     # o schema de todos os arquivos CSV é o mesmo.
     @staticmethod
-    def check_schema_in_csv_files(directory: Path = NULL_PATH, csv_files: list[Path] = []) -> bool:
+    def check_schema_in_csv_files(
+        directory: Path = NULL_PATH, csv_files: list[Path] = []
+    ) -> bool:
         result = False
         csv_file_list = []
         if directory == NULL_PATH and len(csv_files) == 0:
             msg = 'Você deve fornecer um diretório ou uma lista de arquivos'
             raise ValueError('Parâmetros inválidos')
         elif directory != NULL_PATH and len(csv_files) > 0:
-            msg = 'Você deve escolher entre  fornecer um diretório ou ' + 'uma lista de arquivos, mas não os dois !'
+            msg = (
+                'Você deve escolher entre  fornecer um diretório ou '
+                + 'uma lista de arquivos, mas não os dois !'
+            )
             raise ValueError('Parâmetros ambíguos. ' + msg)
         elif len(csv_files) > 0:
             csv_file_list = csv_files
@@ -218,7 +240,9 @@ class IO:
     # por exemplo, devem ser substituidos por NaN (np.na do numpy) para que possamos
     # fazer a conversão para float. O método check_convertion_to_float() faz isso.
     @staticmethod
-    def __check_convertion_to_float(col_name:str, cols: pd.Series) -> tuple[str, list[str]]:
+    def __check_convertion_to_float(
+        col_name: str, cols: pd.Series
+    ) -> tuple[str, list[str]]:
         assert isinstance(cols, pd.Series)
         not_float_values = []
         # Definindo a expressão regular para identificar números de ponto flutuante
@@ -229,20 +253,38 @@ class IO:
             # logger.debug(idx, valor)
             if (not re.match(padrao, str(valor))) and (not pd.isna(valor)):
                 if isinstance(valor, str):
-                    if valor not in ['NaN', '-NaN', '-nan', 'nan', '<NA>', 'N/A',
-                                     'NA', 'NULL', 'None', 'n/a', 'null']:
+                    if valor not in [
+                        'NaN',
+                        '-NaN',
+                        '-nan',
+                        'nan',
+                        '<NA>',
+                        'N/A',
+                        'NA',
+                        'NULL',
+                        'None',
+                        'n/a',
+                        'null',
+                    ]:
                         # logger.debug(idx, '\t', valor, 'não é uma representação valida para NaN')
                         not_float_values.append(valor)
                 else:
                     # logger.debug(idx, '\t', valor, 'não e um número valido e nem uma representação valida para NaN')
                     not_float_values.append(valor)
         if len(not_float_values) > 0:
-            logger.debug('not_float_values: ' + str(not_float_values) + ' for column: ' + str(col_name))
+            logger.debug(
+                'not_float_values: '
+                + str(not_float_values)
+                + ' for column: '
+                + str(col_name)
+            )
 
         return (col_name, not_float_values)
 
     @staticmethod
-    def check_convertion_to_float(numeric_columns: list[str], df: pd.DataFrame) -> dict[str, list[str]]:
+    def check_convertion_to_float(
+        numeric_columns: list[str], df: pd.DataFrame
+    ) -> dict[str, list[str]]:
         all_problems = {}
         for col in numeric_columns:
             logger.debug('Verificando a conversão para tipo Number da coluna', col)
@@ -261,31 +303,56 @@ class IO:
     # campos numéricos contra as regras para Not A Number e retorna um
     # Dataframe com os tipos de dados numéricos corretos para cada coluna.
     @staticmethod
-    def read_csv_file(path: Path, column_types: list[type],
-            nan_values:list[str] = [], parse_dates: list[int] = [1],
-            date_format:str = 'AAAA-MM-DD HH:MM:SS') -> pd.DataFrame:
+    def read_csv_file(
+        path: Path,
+        column_types: list[type],
+        nan_values: list[str] = [],
+        parse_dates: list[int] = [1],
+        date_format: str = 'AAAA-MM-DD HH:MM:SS',
+    ) -> pd.DataFrame:
         for value in column_types:
             assert isinstance(value, type), f'Erro: {value} não é um tipo válido'
 
         # Define o conversor para cada tipo de coluna
         # Crio um dicionário com os conversores e tipos de colunas
-        converters_tmp = {
-            f'{i}': column_types[i] for i in range(len(column_types))
-        }
+        converters_tmp = {f'{i}': column_types[i] for i in range(len(column_types))}
 
         # logger.debug('converters:', converters_tmp, type(converters_tmp))
-        result: pd.DataFrame = pd.read_csv(filepath_or_buffer = path, sep=',', delimiter=None,
-            header='infer', dtype=None, engine='c', converters=converters_tmp,
-            na_values=nan_values, keep_default_na=True, na_filter=True, verbose=True,
-            skip_blank_lines=True, parse_dates=parse_dates, date_format=date_format,
-            dayfirst=False, cache_dates=False, compression='infer', thousands=None,
-            decimal='.', quotechar='"', # Not Supported: lineterminator=os.linesep
-            quoting=csv.QUOTE_MINIMAL, doublequote=True, comment=None, encoding='utf-8',
-            encoding_errors='strict', on_bad_lines='error', delim_whitespace=False,
-            low_memory=True, memory_map=False, dtype_backend='numpy_nullable')
+        result: pd.DataFrame = pd.read_csv(
+            filepath_or_buffer=path,
+            sep=',',
+            delimiter=None,
+            header='infer',
+            dtype=None,
+            engine='c',
+            converters=converters_tmp,
+            na_values=nan_values,
+            keep_default_na=True,
+            na_filter=True,
+            verbose=True,
+            skip_blank_lines=True,
+            parse_dates=parse_dates,
+            date_format=date_format,
+            dayfirst=False,
+            cache_dates=False,
+            compression='infer',
+            thousands=None,
+            decimal='.',
+            quotechar='"',  # Not Supported: lineterminator=os.linesep
+            quoting=csv.QUOTE_MINIMAL,
+            doublequote=True,
+            comment=None,
+            encoding='utf-8',
+            encoding_errors='strict',
+            on_bad_lines='error',
+            delim_whitespace=False,
+            low_memory=True,
+            memory_map=False,
+            dtype_backend='numpy_nullable',
+        )
         logger.debug(result.info())
         # Criando um dicionário com os conversores de tipos para as colunas
-        converters =  {}
+        converters = {}
         if len(converters_tmp) > 0:
             # TODO: Verificar como converter a primeira coluna que é Timestamp e é index.
             for idx, col in enumerate(result.columns):
@@ -297,10 +364,14 @@ class IO:
         all_problems_on_data = IO.check_convertion_to_float(numeric_columns, result)
         idx: int = 0
         for key, value in converters.items():
-            assert isinstance(value, type), f'Erro: {value} não é um tipo válido para coluna {key}'
+            assert isinstance(
+                value, type
+            ), f'Erro: {value} não é um tipo válido para coluna {key}'
             # Mapeia os tokens inválidos para NaN
-            if (key in all_problems_on_data.keys()):
-                result[key] = result[key].replace(to_replace=all_problems_on_data[key], value=np.nan)
+            if key in all_problems_on_data.keys():
+                result[key] = result[key].replace(
+                    to_replace=all_problems_on_data[key], value=np.nan
+                )
             logger.debug('coluna:', key, '\ttipo:', value)
             if '<NA>' in result[key].values:
                 result[key] = result[key].replace(to_replace='<NA>', value='NaN')
@@ -333,26 +404,46 @@ class IO:
         # Veja: https://www.w3.org/TR/NOTE-datetime
         path_absolute = path.absolute()
         logger.debug(f'csv_file_path = {path_absolute}')
-        df.to_csv(path, sep=',', na_rep='NaN', float_format=None,
-            header=True, index=False, index_label=None, mode='w',
-            encoding='utf-8', compression='infer', quoting=csv.QUOTE_MINIMAL,
-            quotechar='"', lineterminator=os.linesep, chunksize=None,
-            date_format=None, doublequote=True, escapechar=None,
-            decimal='.', errors='strict', storage_options=None)
+        df.to_csv(
+            path,
+            sep=',',
+            na_rep='NaN',
+            float_format=None,
+            header=True,
+            index=False,
+            index_label=None,
+            mode='w',
+            encoding='utf-8',
+            compression='infer',
+            quoting=csv.QUOTE_MINIMAL,
+            quotechar='"',
+            lineterminator=os.linesep,
+            chunksize=None,
+            date_format=None,
+            doublequote=True,
+            escapechar=None,
+            decimal='.',
+            errors='strict',
+            storage_options=None,
+        )
+
 
 def __validate_type_convertion_test(path: Path):
     logger.debug('\n\n__validate_type_convertion(). Path:', path, '\n')
     column_types: list[type] = [pd.Timestamp, np.float32, np.float32]
-    nan_values:list[str] = ['Bad', 'Configure']
+    nan_values: list[str] = ['Bad', 'Configure']
     parse_dates: list[int] = [1]
-    date_format:str = 'AAAA-MM-DD HH:MM:SS'
-    df_whith_nans = IO.read_csv_file(path, column_types, nan_values, parse_dates, date_format)
+    date_format: str = 'AAAA-MM-DD HH:MM:SS'
+    df_whith_nans = IO.read_csv_file(
+        path, column_types, nan_values, parse_dates, date_format
+    )
     logger.debug('df_whith_nans:\n', df_whith_nans)
     logger.debug('Tipos das colunas no Dataframe da Série Temporal:')
     for col in df_whith_nans.columns:
         for value in df_whith_nans[col]:
             logger.debug(col, '\t', value, type(value))
         logger.debug('-----------------------------------------------')
+
 
 if __name__ == "__main__":
     # Lê o arquivo CSV e gera um Dataframe com os tipos de dados corretos informados

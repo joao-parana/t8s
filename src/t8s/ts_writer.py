@@ -2,17 +2,19 @@
 
 # from __future__ import annotations usado apenas nas versões anteriores a 3.7
 from abc import ABC, abstractmethod
-from logging import captureWarnings
-from typing import Any, Optional
-from pathlib import Path
 from datetime import datetime
-from t8s.ts import TimeSerie
-from t8s.log_config import LogConfig
+from logging import captureWarnings
+from pathlib import Path
+from typing import Any, Optional
+
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-logger = LogConfig().getLogger()
+from t8s.log_config import LogConfig
+from t8s.ts import TimeSerie
+
+logger = LogConfig().get_logger()
 
 
 class Strategy(ABC):
@@ -107,10 +109,11 @@ class WriteCsvFile(Strategy):
 
 
 if __name__ == "__main__":
-    from logging import INFO, DEBUG
+    import subprocess
+    from logging import DEBUG, INFO
+
     import numpy as np
     import pandas as pd
-    import subprocess
 
     LogConfig().initialize_logger(DEBUG)
     path_str: str = 'ts_01.parquet'

@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 
-from t8s.log_config import LogConfig
-from pathlib import Path
 from datetime import datetime
+from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
+
 import t8s
 from t8s import get_sample_df
-from t8s.ts import TimeSerie
-from t8s.ts_builder import TSBuilder, ReadParquetFile, ReadCsvFile
 from t8s.log_config import LogConfig
-from t8s.ts_writer import TSWriter, WriteParquetFile, WriteCsvFile
-from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL
+from t8s.ts import TimeSerie
+from t8s.ts_builder import ReadCsvFile, ReadParquetFile, TSBuilder
+from t8s.ts_writer import TSWriter, WriteCsvFile, WriteParquetFile
 
 if __name__ == "__main__":
     # logger.debug('globals:', globals())
     # The client code.
     LogConfig().initialize_logger(DEBUG)
-    logger = LogConfig().getLogger()
+    logger = LogConfig().get_logger()
     ts = TSBuilder.empty()
     # initialize_logger(INFO)
     logger.info('t8s package version:' + t8s.__version__)
@@ -26,7 +27,7 @@ if __name__ == "__main__":
     # Cria uma série temporal multivariada com três atributos: timestamp, temperatura e velocidade
     start_timestamp = datetime(2022, 1, 1, 0, 0, 0)
     number_of_records = 4
-    time_interval = 1 # hour
+    time_interval = 1  # hour
     logger.info(f'@given: -> Building a sample Dataframe')
     df, last_ts = get_sample_df(number_of_records, start_timestamp, time_interval)
     df.to_csv('data/csv/ts_01.csv', index=False)
@@ -43,7 +44,9 @@ if __name__ == "__main__":
     # --------------------------------------------------------------------------------
 
     # Grava a série temporal em parquet
-    logger.debug(f'Grava a série temporal (formato {ts.format}) em um arquivo parquet {path}')
+    logger.debug(
+        f'Grava a série temporal (formato {ts.format}) em um arquivo parquet {path}'
+    )
     ctx = TSWriter(WriteParquetFile())
     logger.debug("Client: Strategy was seted to write Parquet file.")
     ctx.write(Path(path_str), ts)
@@ -69,7 +72,9 @@ if __name__ == "__main__":
         logger.debug("Client: ReadStrategy is set to read Parquet file.")
         ts = ctx.build_from_file(Path(path_str))
     else:
-        assert str(path).endswith('.csv'), "If path is not a Parquet file the path must be a CSV file"
+        assert str(path).endswith(
+            '.csv'
+        ), "If path is not a Parquet file the path must be a CSV file"
         logger.debug("Client: ReadStrategy is set to read CSV file.")
         ctx = TSBuilder(ReadCsvFile())
         ts = ctx.build_from_file(Path(path_str))
@@ -126,7 +131,9 @@ if __name__ == "__main__":
     ts_whith_nans: TimeSerie = TimeSerie(data=ts.df, format='wide', features_qty=3)
     path = Path('ts_01.csv')
     # Coluna de indice não é considerada no atributo 'iloc'
-    logger.debug('ts_whith_nans.df.index.name:', "'" + str(ts_whith_nans.df.index.name) + "'")
+    logger.debug(
+        'ts_whith_nans.df.index.name:', "'" + str(ts_whith_nans.df.index.name) + "'"
+    )
     if ts_whith_nans.df.index.name == 'None':
         ts_whith_nans.df.iloc[0, 2] = 'Missing'
         ts_whith_nans.df.iloc[1, 1] = np.nan

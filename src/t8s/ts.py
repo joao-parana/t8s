@@ -1,29 +1,35 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import annotations
-from typing import Protocol
-from pathlib import Path
-from datetime import datetime
-import types
+
 import copy
-import yaml
+import types
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Type, TypeVar
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Optional, Protocol, Type, TypeVar
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pyarrow as pa  # type: ignore
+import pyarrow.parquet as pq  # type: ignore
+import yaml
 from pandas.core.series import Series
-import pyarrow as pa         # type: ignore
-import pyarrow.parquet as pq # type: ignore
-from sklearn.base import TransformerMixin   # type: ignore
-from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler # type: ignore
+from sklearn.base import TransformerMixin  # type: ignore
+from sklearn.preprocessing import (  # type: ignore
+    MinMaxScaler,
+    RobustScaler,
+    StandardScaler,
+)
+
+from t8s.log_config import LogConfig
 from t8s.plot import TSPlotting
 from t8s.stats import TSStats
-import matplotlib.pyplot as plt
-from t8s.log_config import LogConfig
 
 # TODO: Esclarecer duvida coceitual sobre o conceito de feture em séries temporais multivariadas
 
-logger = LogConfig().getLogger()
+logger = LogConfig().get_logger()
 
 TS = TypeVar('TS', bound='TimeSerie')
 
@@ -66,7 +72,9 @@ class ITimeSeriesProcessor(ABC):
         pass
 
     @abstractmethod
-    def normalize(self, scaler: TransformerMixin, columns: list[str], inplace: bool = False) -> TimeSerie:
+    def normalize(
+        self, scaler: TransformerMixin, columns: list[str], inplace: bool = False
+    ) -> TimeSerie:
         pass
 
     @abstractmethod
@@ -77,6 +85,7 @@ class ITimeSeriesProcessor(ABC):
     @abstractmethod
     def join(list_of_ts: list['TimeSerie']) -> TimeSerie:
         pass
+
 
 """Rastreia a proveniência dos ativos de informação, Série Temporal neste caso"""
 
@@ -116,7 +125,8 @@ class IProvenanceable(ABC):
     def apply_transformation(self, transformation: str, **kwargs) -> Any:
         """Este método aplica uma transformação ao objeto TimeSerie e retorna um novo
         objeto TimeSerie com as informações de proveniência atualizadas. Ele recebe como
-        parâmetros o nome da transformação e os parâmetros específicos da transformação."""
+        parâmetros o nome da transformação e os parâmetros específicos da transformação.
+        """
         pass
 
 
@@ -124,6 +134,7 @@ class ITimeSerie(ITimeSeriesProcessor, IProvenanceable):
     """
     Interface que estende as outras interfaces. ë apenas uma Marker Interface
     """
+
     pass
 
 
@@ -139,6 +150,7 @@ class TimeSerie(ITimeSerie):
     coluna e as colunas alvo, ao final. Todas as features ficam no meio do Dataset. O motivo
     é simplesmente uma simplificação para facilitar a implementação.
     """
+
     def __init__(self, *args, format, features_qty, **kwargs):
         assert isinstance(format, str), "format must be a string"
         assert isinstance(features_qty, int), "features_qty must be a int"
@@ -157,36 +169,52 @@ class TimeSerie(ITimeSerie):
                     if 'content' in arg.keys() and arg['content'] == 'EMPTY':
                         return
                     self.df = pd.DataFrame(*args, **kwargs)
-                break # Apenas o primeiro parâmetro precisa de tratamento especial.
+                break  # Apenas o primeiro parâmetro precisa de tratamento especial.
         else:
-           for key, kwarg_value in kwargs.items():
+            for key, kwarg_value in kwargs.items():
                 if key == 'data' and isinstance(kwarg_value, pd.DataFrame):
                     self.df = kwarg_value
                 if key == 'data' and isinstance(kwarg_value, dict):
                     self.df = pd.DataFrame(*args, **kwargs)
-                if key == 'data' and isinstance(kwarg_value, str) and kwarg_value == 'EMPTY':
+                if (
+                    key == 'data'
+                    and isinstance(kwarg_value, str)
+                    and kwarg_value == 'EMPTY'
+                ):
                     return
-                break # Apenas o parâmetro 'data' precisa de tratamento especial.
+                break  # Apenas o parâmetro 'data' precisa de tratamento especial.
 
         # TODO: garantir que a primeira coluna seja um Timestamp tanto para o formato long quanto wide
         # Por hora lanço Exception
         if self.df.empty:
-            raise Exception('Não foram fornecidos dados para criação da série temporal. Use o método TimeSerie.empty() se desejar criar uma série temporal vazia')
+            raise Exception(
+                'Não foram fornecidos dados para criação da série temporal. Use o método TimeSerie.empty() se desejar criar uma série temporal vazia'
+            )
         first_column_type = self.df[self.df.columns[0]].dtype
-        if first_column_type not in ['datetime64[ns]', 'datetime64[ns, America/Sao_Paulo]']:
+        if first_column_type not in [
+            'datetime64[ns]',
+            'datetime64[ns, America/Sao_Paulo]',
+        ]:
             # TODO: Investigar forma de loggar os tipos de dados e detalhes do DataFrame
             logger.info(self.df.info())
             logger.error(self.df.info())
-            raise Exception('A primeira coluna deve ser um Timestamp.' +
-            ' Experado ' + 'datetime64[ns]' + ', recebido ' + str(first_column_type) +
-            f'\nself.df.info() =\n{self.df.info()}\n')
+            raise Exception(
+                'A primeira coluna deve ser um Timestamp.'
+                + ' Experado '
+                + 'datetime64[ns]'
+                + ', recebido '
+                + str(first_column_type)
+                + f'\nself.df.info() =\n{self.df.info()}\n'
+            )
         logger.debug('Objeto TimeSerie construido com sucesso')
 
     def __repr__(self):
         columns_types = [type(self.df[col][0]) for col in self.df.columns]
         # Retorna uma representação em string do objeto TimeSerie
-        return f'TimeSerie(format={self.format}, features={self.features}, ' + \
-               f'df=\n{self.df.__repr__()}) + \ntypes: {columns_types}'
+        return (
+            f'TimeSerie(format={self.format}, features={self.features}, '
+            + f'df=\n{self.df.__repr__()}) + \ntypes: {columns_types}'
+        )
 
     def copy(self):
         # cria uma cópia profunda do DataFrame
@@ -208,7 +236,9 @@ class TimeSerie(ITimeSerie):
         # Em algumas situações `ds` pode ser o id do par `datasource/indicator`.
         assert self.format == 'wide', 'A série temporal deve estar no formato wide'
         first_column_name = self.df.columns[0]
-        df_long_format = pd.melt(self.df, id_vars=[first_column_name], var_name='ds', value_name='value')
+        df_long_format = pd.melt(
+            self.df, id_vars=[first_column_name], var_name='ds', value_name='value'
+        )
         # Ordena o DataFrame pela coluna 'timestamp' em ordem crescente
         df_long_format.sort_values(by=['timestamp', 'ds'], inplace=True)
         # logger.debug(df_long_format)
@@ -278,16 +308,26 @@ class TimeSerie(ITimeSerie):
         return result
 
     def get_numeric_column_names(self) -> list:
-        ret:list = []
+        ret: list = []
         for idx, c in enumerate(self.df.columns):
-            if (self.df[c].dtype == float or self.df[c].dtype == int or
-            self.df[c].dtype == np.float64 or self.df[c].dtype == np.int64 or
-            self.df[c].dtype == np.float32 or self.df[c].dtype == np.int32):
+            if (
+                self.df[c].dtype == float
+                or self.df[c].dtype == int
+                or self.df[c].dtype == np.float64
+                or self.df[c].dtype == np.int64
+                or self.df[c].dtype == np.float32
+                or self.df[c].dtype == np.int32
+            ):
                 ret.append(c)
-        ret.sort() # sort é operação mutável !
+        ret.sort()  # sort é operação mutável !
         return ret
 
-    def normalize(self, scaler: TransformerMixin, numeric_columns: list[str] | None = None, inplace: bool = False) -> TimeSerie:
+    def normalize(
+        self,
+        scaler: TransformerMixin,
+        numeric_columns: list[str] | None = None,
+        inplace: bool = False,
+    ) -> TimeSerie:
         column_list: list[str] = []
         if numeric_columns is None:
             column_list = self.get_numeric_column_names()
@@ -311,18 +351,22 @@ class TimeSerie(ITimeSerie):
             logger.info(f'Time Serie normalized -> scaler type: {type(self.scaler)}')
             return self
         else:
-            ret = TimeSerie(data=df_norm, format=self.format, features_qty=int(self.features))
+            ret = TimeSerie(
+                data=df_norm, format=self.format, features_qty=int(self.features)
+            )
             ret.scaler = scaler
             scaler_name = str(type(scaler)).split('.')[-1]
-            logger.info(f'Time Serie normalized -> scaler type: {type(scaler)} -> {scaler_name}')
+            logger.info(
+                f'Time Serie normalized -> scaler type: {type(scaler)} -> {scaler_name}'
+            )
             return ret
 
     def denormalize(self, inplace: bool = False) -> TimeSerie | None:
         def denormalize_row():
             if isinstance(self.scaler, MinMaxScaler):
-                return lambda x: (x + 1) / 2 * (self.scaler.data_max_ - self.scaler.data_min_) + self.scaler.data_min_ # type: ignore
+                return lambda x: (x + 1) / 2 * (self.scaler.data_max_ - self.scaler.data_min_) + self.scaler.data_min_  # type: ignore
             elif isinstance(self.scaler, RobustScaler):
-                return lambda x: (x * self.scaler.scale_) + self.scaler.center_ # type: ignore
+                return lambda x: (x * self.scaler.scale_) + self.scaler.center_  # type: ignore
             else:
                 raise ValueError('Unsupported scaler')
 
@@ -336,7 +380,9 @@ class TimeSerie(ITimeSerie):
             logger.info('-----------------------------------------------------')
             logger.info(f'idx = {idx}, row =\n{row}')
             logger.info(f'row[numeric_columns] =\n{row[numeric_columns]}')
-            logger.info(f'denormalize(scaler)(row[numeric_columns]) = {row_denormalized}')
+            logger.info(
+                f'denormalize(scaler)(row[numeric_columns]) = {row_denormalized}'
+            )
 
     def get_statistics(self) -> TSStats:
         result = TSStats(self.df)
@@ -349,9 +395,14 @@ class TimeSerie(ITimeSerie):
     o objeto TimeSerie original, adicionando a feature. O parâmetro `plot` indica se o gráfico da
     série temporal corrigida deve ser desenhado.
     """
-    def add_nan_mask(self, inplace=False, plot=False, method='interpolate') -> TimeSerie:
+
+    def add_nan_mask(
+        self, inplace=False, plot=False, method='interpolate'
+    ) -> TimeSerie:
         if self.is_multivariate():
-            raise Exception('A série temporal deve ser univariada. Use o método split() para obter uma lista de séries temporais univariadas')
+            raise Exception(
+                'A série temporal deve ser univariada. Use o método split() para obter uma lista de séries temporais univariadas'
+            )
         df_interpolated: pd.DataFrame
         if inplace:
             df_interpolated = self.df
@@ -360,7 +411,9 @@ class TimeSerie(ITimeSerie):
 
         time_column = self.df.columns[0]
         feature_column = self.df.columns[1]
-        interpolated_serie: Series = df_interpolated[feature_column].interpolate(method='spline', order=3)
+        interpolated_serie: Series = df_interpolated[feature_column].interpolate(
+            method='spline', order=3
+        )
         masked_values = TimeSerie.build_mask_serie(self.df[feature_column])
         inverse_serie = interpolated_serie * masked_values
         nan_column_name = f'{feature_column}_nan'
@@ -370,15 +423,20 @@ class TimeSerie(ITimeSerie):
         if inplace:
             result = self
         else:
-            result = TimeSerie(df_interpolated, format=self.format, features_qty=int(df_interpolated.columns.size))
+            result = TimeSerie(
+                df_interpolated,
+                format=self.format,
+                features_qty=int(df_interpolated.columns.size),
+            )
 
         logger.info(f'result =\n{result}')
         if plot:
             result.plot.line(figsize=(12, 5), grid=True)
             # .plot.line(figsize=(12, 5), grid=True)
 
-
-        return TimeSerie(df_interpolated, format=self.format, features_qty=int(self.features))
+        return TimeSerie(
+            df_interpolated, format=self.format, features_qty=int(self.features)
+        )
 
     """
     Implementa-se aqui um método plot que retorna um objeto TSPlotting,
@@ -395,6 +453,7 @@ class TimeSerie(ITimeSerie):
     O formato assumido é `wide` e a primeira coluna é tratada sempre com timestatmps.
     As demais colunas são tratadas como features da série temporal.
     """
+
     @property
     def plot(self):
         return TSPlotting(self)
@@ -410,9 +469,15 @@ class TimeSerie(ITimeSerie):
 
         if len(list_of_ts) == 1:
             # Garantindo que a primeira coluna seja um Timestamp (datetime) quando o formato for long ou wide
-            assert isinstance(list_of_ts[0].df[timestamp_column_name], datetime), 'timestamp deve ser do tipo datetime'
-            assert list_of_ts[0].format == 'wide', 'A série temporal deve estar no formato wide'
-            assert list_of_ts[0].features == 2, 'A série temporal univariada deve ter apenas 2 features'
+            assert isinstance(
+                list_of_ts[0].df[timestamp_column_name], datetime
+            ), 'timestamp deve ser do tipo datetime'
+            assert (
+                list_of_ts[0].format == 'wide'
+            ), 'A série temporal deve estar no formato wide'
+            assert (
+                list_of_ts[0].features == 2
+            ), 'A série temporal univariada deve ter apenas 2 features'
             assert list_of_ts[0].is_univariate(), 'A série temporal deve ser univariada'
             # TODO: Assume-se que a primeira coluna é o timestamp e não existe indice no DataFrame. Ver implicações !
             # Garantindo que a primeira coluna seja o indice no Dataframe quando o formato for long ou wide
@@ -424,7 +489,9 @@ class TimeSerie(ITimeSerie):
         if not isinstance(multivariate_df[timestamp_column_name][0], datetime):
             # Se a coluna timestamp não for do tipo datetime, converter para datetime.
             # Alternativamente podemeos usar o método astype(datetime) que faz o cast.
-            multivariate_df[timestamp_column_name] = pd.to_datetime(multivariate_df[timestamp_column_name])
+            multivariate_df[timestamp_column_name] = pd.to_datetime(
+                multivariate_df[timestamp_column_name]
+            )
 
         for idx, ts in enumerate(list_of_ts):
             if idx == 0:
@@ -437,7 +504,9 @@ class TimeSerie(ITimeSerie):
 
         # Ao final crio a série temporal multivariada usando a lista de univariadas
         features_qty = multivariate_df.columns.size
-        multivariate_ts = TimeSerie(format='wide', features_qty=features_qty, data=multivariate_df)
+        multivariate_ts = TimeSerie(
+            format='wide', features_qty=features_qty, data=multivariate_df
+        )
 
         # Garantindo que a primeira coluna seja o indice no Dataframe quando o formato for long ou wide
         # Define a primeira coluna como índice do dataframe, caso já não seja
@@ -456,6 +525,7 @@ class TimeSerie(ITimeSerie):
     imputação de valores nulos, ela elimina os valores originais, mantendo apenas os
     valores imputados
     """
+
     @staticmethod
     def build_mask_serie(s: pd.Series) -> pd.Series:
         mask = np.full(len(s), 1.0)
@@ -463,7 +533,7 @@ class TimeSerie(ITimeSerie):
         previus = s[0]
         for idx, v in enumerate(mask):
             value = s[idx]
-            if not np.isnan(value): # operador == não funciona com NaN
+            if not np.isnan(value):  # operador == não funciona com NaN
                 mask[idx] = np.nan
             if idx < len(mask) - 2 and np.isnan(s[idx + 1]):
                 mask[idx] = 1.0
@@ -500,10 +570,13 @@ class TimeSerie(ITimeSerie):
         # TODO: Implementar get_provenance_by_transformation()
         return {}
 
-    def apply_transformation(self, transformation: str, **kwargs) -> Optional['TimeSerie']:
+    def apply_transformation(
+        self, transformation: str, **kwargs
+    ) -> Optional['TimeSerie']:
         """Este método aplica uma transformação ao objeto TimeSerie e retorna um novo
         objeto TimeSerie com as informações de proveniência atualizadas. Ele recebe como
-        parâmetros o nome da transformação e os parâmetros específicos da transformação."""
+        parâmetros o nome da transformação e os parâmetros específicos da transformação.
+        """
         # TODO: Implementar apply_transformation()
         return TimeSerie.empty()
 

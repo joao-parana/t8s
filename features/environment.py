@@ -1,30 +1,43 @@
 import os
 import sys
 from datetime import datetime
+from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING, log
 from pathlib import Path
-from t8s.log_config import LogConfig
-from behave import given, when, then, model, step # type: ignore
-from behave.model import Feature, Scenario # type: ignore
-from logging import INFO, DEBUG, WARNING, ERROR, CRITICAL, log
-from behave import use_step_matcher # type: ignore
+
+from behave import (  # type: ignore
+    given,
+    model,
+    step,
+    then,
+    use_step_matcher,  # type: ignore
+    when,
+)
+from behave.model import Feature, Scenario  # type: ignore
+
 import t8s
-from t8s.util import Util
-from t8s.ts import TimeSerie
 from t8s import get_sample_df
+from t8s.constants import PROJECT_ROOT
+from t8s.log_config import LogConfig
+from t8s.ts import TimeSerie
+from t8s.util import Util
 
 # use_step_matcher("re")
 use_step_matcher("parse")
 
+T8S_WORKSPACE_DIR = PROJECT_ROOT
+
 LogConfig().initialize_logger(INFO)
-logger = LogConfig().getLogger()
+logger = LogConfig().get_logger()
 print(f'\n\n• The script "environment.py" was loaded ...\n')
 print(f'\n• The python version used is "{sys.version_info}"\n')
 print(f'\n• t8s package version is {t8s.__version__}\n\n')
+
 
 def list_files(prefix: str, context):
     l: list = Util.list_all_files(context.PARQUET_PATH)
     for item in l:
         logger.info(prefix + item)
+
 
 def before_all(context):
     # Inicializa o contexto do behave
@@ -32,24 +45,26 @@ def before_all(context):
     context.list_files = list_files
     logger.info(f'\n\nbefore_all() called . . .\n')
     logger.info(f'-------------------------------------------------')
-    T8S_WORKSPACE_DIR = os.environ.get('T8S_WORKSPACE_DIR', '/Volumes/dev/t8s')
-    CSV_PATH_STR:str = os.path.join(T8S_WORKSPACE_DIR, 'data', 'csv')
-    CSV_PATH: Path = Path(CSV_PATH_STR)
-    PARQUET_PATH_STR:str = os.path.join(T8S_WORKSPACE_DIR, 'data', 'parquet')
-    PARQUET_PATH: Path = Path(PARQUET_PATH_STR)
+
+    # os.environ.get('T8S_WORKSPACE_DIR', '/Volumes/dev/t8s')
+    csv_path_str: str = os.path.join(T8S_WORKSPACE_DIR, 'data', 'csv')
+    csv_path: Path = Path(csv_path_str)
+    parquet_file_path: str = os.path.join(T8S_WORKSPACE_DIR, 'data', 'parquet')
+    parquet_path: Path = Path(parquet_file_path)
     context.T8S_WORKSPACE_DIR = T8S_WORKSPACE_DIR
-    context.CSV_PATH = CSV_PATH
-    context.PARQUET_PATH = PARQUET_PATH
+    context.CSV_PATH = csv_path
+    context.PARQUET_PATH = parquet_path
     logger.info(f'before_all: T8S_WORKSPACE_DIR = {context.T8S_WORKSPACE_DIR}')
     logger.info(f'before_all: CSV_PATH          = {context.CSV_PATH}')
     logger.info(f'before_all: PARQUET_PATH      = {context.PARQUET_PATH}')
     create_sample_ts_and_save_as_parquet(context)
-    context.list_files(f'before_all: ', context)
+    context.list_files('before_all: ', context)
     # Passo funções utilitárias via contexto para serem usadas nas steps para obter
     # reusabilidade de código.
     context.create_sample_ts_and_save_as_parquet = create_sample_ts_and_save_as_parquet
     context.clean_data_dir = clean_data_dir
-    logger.info(f'-------------------------------------------------')
+    logger.info('-------------------------------------------------')
+
 
 def write_ts_to_parquet_file(ts, parquet_path, filename: str):
     parquet_file_path_str: str = str(parquet_path) + '/' + filename
@@ -57,31 +72,37 @@ def write_ts_to_parquet_file(ts, parquet_path, filename: str):
     # Devido a problemas de 'circular import' tivemos que usar a classe Util
     Util.to_parquet(ts, path_ts)
 
+
 def create_sample_ts_and_save_as_parquet(context):
     start_timestamp = datetime(2022, 1, 1, 0, 0, 0)
     number_of_records = 4
-    time_interval = 1 # hour
-    dataframe, last_ts = get_sample_df(number_of_records, start_timestamp, time_interval)
-    context.ts1 = TimeSerie(dataframe, format='wide', features_qty=len(dataframe.columns))
+    time_interval = 1  # hour
+    dataframe, last_ts = get_sample_df(
+        number_of_records, start_timestamp, time_interval
+    )
+    context.ts1 = TimeSerie(
+        dataframe, format='wide', features_qty=len(dataframe.columns)
+    )
     # Grava a série temporal ts1 em parquet
     write_ts_to_parquet_file(context.ts1, context.PARQUET_PATH, 'ts_01.parquet')
 
 
-def clean_data_dir(CSV_PATH, PARQUET_PATH):
-    logger.info(f'clean_data_dir() called ...')
-    for diretory in [CSV_PATH, PARQUET_PATH]:
+def clean_data_dir(csv_path, parquet_path):
+    logger.info('clean_data_dir() called ...')
+    for diretory in [csv_path, parquet_path]:
         logger.info(f'clean_data_dir() -> diretory = {diretory}')
         for root, dirs, files in os.walk(diretory):
             for file in files:
                 os.remove(os.path.join(root, file))
-            for dir in dirs:
-                os.rmdir(os.path.join(root, dir))
+            for my_dir in dirs:
+                os.rmdir(os.path.join(root, my_dir))
         for root, dirs, files in os.walk(diretory):
             for file in files:
                 print(os.path.join(root, file))
-            for dir in dirs:
-                print(os.path.join(root, dir))
+            for my_dir in dirs:
+                print(os.path.join(root, my_dir))
     return 'data directory empty'
+
 
 # HOOK
 def before_feature(context, feature: Feature):
@@ -100,6 +121,7 @@ def before_feature(context, feature: Feature):
         pass
 
     logger.info(f'-------------------------------------------------')
+
 
 # HOOK
 def before_scenario(context, scenario: Scenario):
