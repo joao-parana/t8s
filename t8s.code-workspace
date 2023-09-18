@@ -22,7 +22,7 @@
 		},
 		"ruff.configPath": "pyproject.toml",
 		"ruff.args": [
-			"--config=${workspaceFolder}/pyproject.toml"
+			"--config=pyproject.toml"
 		],
 		"python.testing.pytestArgs": ["tests"],
 		"python.testing.unittestEnabled": false,
